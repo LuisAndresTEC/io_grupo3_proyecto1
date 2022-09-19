@@ -36,7 +36,6 @@ def setNumeros(lista):
 
 
 def agregar_variables_augura_objetivo(lista, cantidadRestricciones):
-    print(lista)
     for i in range(cantidadRestricciones):
         lista.append(float(0))
     lista.append('=')
@@ -64,12 +63,36 @@ def agregar_variables_augura_restricciones(lista, cantidadRestricciones):
         listaFinal.append(lista1)
     return listaFinal
 
+def calculaCasilla(casilla,pivote):
+    print("pivote:")
+    print(pivote)
+    print("casilla:")
+    print(casilla)
+    resultado = float(float(casilla + (casilla * -1)) * float(pivote)).__format__('0.4f')
+    print("resultado:")
+    print(resultado)
+    return float(resultado).__format__("0.4f")
+
 
 def metodoSimplex(problema):
     solucionInicial = problema.__solucionInicial__()
     colMenor = problema.__columnaMenor__()
     pivote = problema.__determinacionPivote__(colMenor)
     nuevaFila = problema.__nuevaFila__(pivote)
+    #problema.__grabarTabla__()
+    tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)
+    tablaNueva = problema.__validacionColumnaCeros__(tablaNueva, pivote)
+    tablaNueva = problema.__simplexCalculo__(pivote, nuevaFila)
+
+
+
+
+
+
+
+
+
+
 
 
 class problema:
@@ -80,6 +103,8 @@ class problema:
         self.cant_restricciones = lista[0][3]
         self.funcion_objetivo = lista[1]
         self.restricciones = lista[2:]
+        self.tablaActual = []
+        self.tablaSiguiente = []
 
     def __getRestricciones__(self):
         restricciones = []
@@ -112,8 +137,12 @@ class problema:
             tabla.append(tabla2)
         return tabla
 
-    def __printTabla__(self):
-        tabla = self.__tabularProblema__()
+    def __printTabla__(self, opcion):
+        if opcion == 1:
+            tabla = self.__tabularProblema__()
+            self.tablaActual = tabla
+        else:
+            tabla = self.tablaSiguiente
         for i in range(len(tabla)):
             print(tabla[i])
 
@@ -141,7 +170,6 @@ class problema:
         for i in range(len(columna)):
             if columna[i] < menor and columna[i] != float(0).__format__('0.4f'):
                 menor = columna[i]
-        print(columna.index(menor))
         return columna.index(menor)
 
     def __determinacionPivote__(self, columna):
@@ -155,21 +183,57 @@ class problema:
         for i in range(len(divisiones)):
             if float(divisiones[i][0]) < float(pivote[0]):
                 pivote = divisiones[i][0]
-        print(pivote)
         return pivote
 
     def __nuevaFila__(self, pivote):
         tabla = self.__tabularProblema__()
         fila = []
         for i in range(len(tabla[int(pivote[1][1])])):
-            print(float(
-                float(tabla[int(pivote[1][1])][i]) / float(tabla[int(pivote[1][1])][int(pivote[1][0])])).__format__(
-                '0.4f'))
             fila.append(float(
                 float(tabla[int(pivote[1][1])][i]) / float(tabla[int(pivote[1][1])][int(pivote[1][0])])).__format__(
                 '0.4f'))
-        print(fila)
         return fila
+
+    def __tablaNueva__(self, nuevaFila, pivote):
+        tabla = []
+        for i in range(int(self.cant_restricciones) + 1):
+            if i != pivote[1][1]:
+                fila = []
+                for j in range(len(self.funcion_objetivo)-1):
+                    fila.append(float(0).__format__('0.4f'))
+                tabla.append(fila)
+            else:
+                tabla.append(nuevaFila)
+        self.tablaSiguiente = tabla
+        return tabla
+
+    def __validacionColumnaCeros__(self, tablaNueva, pivote):
+        tabla = self.__tabularProblema__()
+        for i in range(len(tabla)):
+            if tabla[i][pivote[1][0]] == float(0).__format__('0.4f'):
+                tablaNueva[i] = tabla[i]
+        return tablaNueva
+
+    #Esta función, no sirve necesita reparación solo escribe taxto no listas
+    def __grabarTabla__(self):
+        tabla = self.tablaActual
+        write_file(tabla)
+
+    def __simplexCalculo__(self, pivote, nuevaFila):
+        tablaActual = self.tablaActual
+        tablaNueva = self.tablaSiguiente
+        print("------------------------------Tabla nueva - ceros ---------------------------------")
+        self.__printTabla__(2)
+        for i in range(int(self.cant_restricciones) + 1):
+            if i != pivote[1][1]:
+                for j in range(len(self.funcion_objetivo)-1):
+                    tablaNueva[i][j] = float(calculaCasilla(tablaActual[i][j], tablaNueva[pivote[1][1]][j])).__format__('0.4f')
+        print("------------------------------Tabla nueva - calculada ---------------------------------")
+        self.__printTabla__(2)
+
+
+
+
 
 
 def main(problema):
@@ -177,7 +241,7 @@ def main(problema):
     problema.__print__()
     if problema.metodo == '1':  # Es simplex
 
-        problema.__printTabla__()
+        problema.__printTabla__(1)
         metodoSimplex(problema)
 
 
