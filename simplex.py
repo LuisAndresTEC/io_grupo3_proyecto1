@@ -1,3 +1,5 @@
+import numpy as np
+
 # Este será un lector de archivos txt
 def read_file():
     reader = open("operacion.txt", 'r')
@@ -71,14 +73,18 @@ def calculaCasilla(casilla,pivote):
 
 
 def metodoSimplex(problema):
-    solucionInicial = problema.__solucionInicial__()
-    colMenor = problema.__columnaMenor__()#ajuste de donde saca la tabla
-    pivote = problema.__determinacionPivote__(colMenor)
-    nuevaFila = problema.__nuevaFila__(pivote)#ajuste de donde saca la tabla
-    #problema.__grabarTabla__()
-    tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)#ajuste de donde saca la tabla Nueva
-    tablaNueva = problema.__simplexCalculo__(pivote, nuevaFila)#ajuste de donde saca la tabla Nueva
-    solucionInicial = problema.__solucionInicial__()
+    bandera = True
+    while bandera:
+        print("---------------------------------------------------------------")
+        print("-----------------------------Iteracion----------------------------------")
+        print("---------------------------------------------------------------")
+        bandera , colMenor = problema.__indexColumnaMenor__()
+        pivote = problema.__determinacionPivote__(colMenor)
+        nuevaFila = problema.__nuevaFila__(pivote)#problemas
+        #problema.__grabarTabla__()
+        tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)
+        tablaNueva = problema.__simplexCalculo__(pivote, nuevaFila)
+        solucionInicial = problema.__solucionInicial__()
 
 
 
@@ -97,11 +103,19 @@ class problema:
         self.optimizacion = lista[0][1]
         self.cant_v_decision = lista[0][2]
         self.cant_restricciones = lista[0][3]
-        self.funcion_objetivo = lista[1]
+        self.funcion_objetivo = self.__despejarFuncionObjetivo__(lista[1])
         self.restricciones = lista[2:]
         self.tablaActual = []
         self.tablaSiguiente = []
         self.ordenFilas = []
+
+    def __despejarFuncionObjetivo__(self, lista):
+        for i in range(len(lista)):
+            if lista[i] == '=':
+                lista[i] = lista[i]
+            else:
+                lista[i] = float(lista[i]) * -1
+        return lista
 
     def __makeOrdenFilas__(self):
         orden = []
@@ -185,41 +199,51 @@ class problema:
         print("Solucion inicial: ", solucion)
         return solucion
 
-    def __columnaMenor__(self):
-        tabla = self.tablaActual
-        columna = tabla[0]
-        menor = columna[0]
-        for i in range(len(columna)):
-            if columna[i] < menor and columna[i] != float(0).__format__('0.4f'):
-                menor = columna[i]
-        return columna.index(menor)
+    def __indexColumnaMenor__(self):
+        negativos = []
+
+        for i in range(len(self.tablaActual[0])-1):
+            if float(self.tablaActual[0][i]) < 0:
+                negativos.append(self.tablaActual[0][i])
+
+        if len(negativos) < 1:
+            return False , 0
+        else:
+            resultado = max(negativos)
+            print("minimo: " , float(self.tablaActual[0].index(resultado)).__format__('0.4f') , " valor: " , float(resultado).__format__('0.4f'))
+            return True , int(self.tablaActual[0].index(resultado))
 
     def __determinacionPivote__(self, columna):
         tabla = self.tablaActual
         divisiones = []
         for i in range(len(tabla) - 1):
             if tabla[i + 1][columna] > float(0).__format__('0.4f'):
-                pair = [float(tabla[i + 1][-1]) / float(tabla[i + 1][columna]), [columna, i + 1]]
+                casilla = float(tabla[i + 1][-1])
+                pivote = float(tabla[i + 1][columna])
+                pair = [float(casilla/pivote).__format__('0.4f'), [i+1, columna]]
                 divisiones.append(pair)
+
         pivote = divisiones[0]
         for i in range(len(divisiones)):
-            if float(divisiones[i][0]) < float(pivote[0]):
-                pivote = divisiones[i][0]
+            if divisiones[i][0] < pivote[0]:
+                pivote = divisiones[i]
         return pivote
 
     def __nuevaFila__(self, pivote):
         tabla = self.tablaActual
-        fila = []
-        for i in range(len(tabla[int(pivote[1][1])])):
-            fila.append(float(
-                float(tabla[int(pivote[1][1])][i]) / float(tabla[int(pivote[1][1])][int(pivote[1][0])])).__format__(
-                '0.4f'))
-        return fila
+        fila = pivote[1][0]
+        columna = pivote[1][1]
+        nuevaFila = []
+        for i in range(len(tabla[fila])):
+            nuevaFila.append(float(
+                float(tabla[int(fila)][i]) / float(tabla[int(fila)][columna])).__format__('0.4f'))
+        print("Nueva fila: ", nuevaFila)
+        return nuevaFila
 
     def __tablaNueva__(self, nuevaFila, pivote):
         tabla = []
         for i in range(int(self.cant_restricciones) + 1):
-            if i != pivote[1][1]:
+            if i != pivote[1][0]:
                 fila = []
                 for j in range(len(self.funcion_objetivo)-1):
                     fila.append(float(0).__format__('0.4f'))
@@ -237,14 +261,16 @@ class problema:
     def __simplexCalculo__(self, pivote, nuevaFila):
         tablaActual = self.tablaActual
         tablaNueva = self.tablaSiguiente
+        print("----------------------------------Tabla Actual------------------------------------")
+        self.__printTabla__(1)
         print("Pivote: " + str(pivote))
         print("------------------------------Tabla nueva - ceros ---------------------------------")
         self.__printTabla__(2)
         for i in range(int(self.cant_restricciones) + 1):
-            if i != pivote[1][1]:
+            if i != pivote[1][0]:
                 nuevaFila = []
                 for j in range(len(self.funcion_objetivo)-1):
-                    casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][0]])*-1 * float(tablaNueva[pivote[1][1]][j]))
+                    casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][1]])*-1 * float(tablaNueva[pivote[1][0]][j]))
                     if casilla == float(-0).__format__('0.4f'):
                         casilla = float(0).__format__('0.4f')
                     nuevaFila.append(float(casilla).__format__('0.4f'))
