@@ -127,7 +127,7 @@ class problema:
         return self
 
     def __updateOrdenFilas__(self, pivote):
-        self.ordenFilas[pivote[1][1]] = int(pivote[1][0])+1
+        self.ordenFilas[pivote[1][0]] = int(pivote[1][1])+1
         print("Orden de las filas: ", self.ordenFilas)
 
     def __getRestricciones__(self):
