@@ -72,12 +72,13 @@ def calculaCasilla(casilla,pivote):
 
 def metodoSimplex(problema):
     solucionInicial = problema.__solucionInicial__()
-    colMenor = problema.__columnaMenor__()
+    colMenor = problema.__columnaMenor__()#ajuste de donde saca la tabla
     pivote = problema.__determinacionPivote__(colMenor)
-    nuevaFila = problema.__nuevaFila__(pivote)
+    nuevaFila = problema.__nuevaFila__(pivote)#ajuste de donde saca la tabla
     #problema.__grabarTabla__()
-    tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)
-    tablaNueva = problema.__simplexCalculo__(pivote, nuevaFila)
+    tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)#ajuste de donde saca la tabla Nueva
+    tablaNueva = problema.__simplexCalculo__(pivote, nuevaFila)#ajuste de donde saca la tabla Nueva
+    solucionInicial = problema.__solucionInicial__()
 
 
 
@@ -100,6 +101,20 @@ class problema:
         self.restricciones = lista[2:]
         self.tablaActual = []
         self.tablaSiguiente = []
+        self.ordenFilas = []
+
+    def __makeOrdenFilas__(self):
+        orden = []
+        orden.append("U")
+        for i in range(len(self.restricciones)):
+            orden.append(i + 1 + int(self.cant_v_decision))
+        self.ordenFilas = orden
+        print("Orden de las filas: ", self.ordenFilas)
+        return self
+
+    def __updateOrdenFilas__(self, pivote):
+        self.ordenFilas[pivote[1][1]] = int(pivote[1][0])+1
+        print("Orden de las filas: ", self.ordenFilas)
 
     def __getRestricciones__(self):
         restricciones = []
@@ -130,11 +145,12 @@ class problema:
                 if self.restricciones[i][j] != '=':
                     tabla2.append(float(self.restricciones[i][j]).__format__('0.4f'))
             tabla.append(tabla2)
+        self.tablaActual = tabla
         return tabla
 
     def __printTabla__(self, opcion):
         if opcion == 1:
-            tabla = self.__tabularProblema__()
+            tabla = self.tablaActual
             self.tablaActual = tabla
         else:
             tabla = self.tablaSiguiente
@@ -149,17 +165,28 @@ class problema:
               "Funcion objetivo: " + str(self.funcion_objetivo) + "\n" +
               "Restricciones: " + str(self.restricciones))
 
+    #arreglar para trabajar ordenFilas
     def __solucionInicial__(self):
-        tabla = self.__tabularProblema__()
+
         solucion = []
-        for i in range(int(self.cant_v_decision)):
-            solucion.append(float(0).__format__('0.4f'))
-        for j in range(len(tabla) - 1):
-            solucion.append(tabla[j + 1][-1])
+        solucion.append(float(self.tablaActual[0][-1]).__format__('0.4f'))
+        auxiliar = []
+        resultados = []
+        for i in range(1, len(self.tablaActual)):
+            resultados.append(self.tablaActual[i][-1])
+        print("Resultados: ", resultados)
+        for i in range(len(self.funcion_objetivo)-2):
+            auxiliar.append(float(0).__format__('0.4f'))
+        for j in range(len(auxiliar)+1):
+            for k in self.ordenFilas:
+                if j == k:
+                    auxiliar[j-1] = resultados[self.ordenFilas.index(k)-1]
+        solucion.append(auxiliar)
+        print("Solucion inicial: ", solucion)
         return solucion
 
     def __columnaMenor__(self):
-        tabla = self.__tabularProblema__()
+        tabla = self.tablaActual
         columna = tabla[0]
         menor = columna[0]
         for i in range(len(columna)):
@@ -181,7 +208,7 @@ class problema:
         return pivote
 
     def __nuevaFila__(self, pivote):
-        tabla = self.__tabularProblema__()
+        tabla = self.tablaActual
         fila = []
         for i in range(len(tabla[int(pivote[1][1])])):
             fila.append(float(
@@ -201,13 +228,6 @@ class problema:
                 tabla.append(nuevaFila)
         self.tablaSiguiente = tabla
         return tabla
-
-    def __validacionColumnaCeros__(self, tablaNueva, pivote):
-        tabla = self.__tabularProblema__()
-        for i in range(len(tabla)):
-            if tabla[i][pivote[1][0]] == float(0).__format__('0.4f'):
-                tablaNueva[i] = tabla[i]
-        return tablaNueva
 
     #Esta función, no sirve necesita reparación solo escribe taxto no listas
     def __grabarTabla__(self):
@@ -231,6 +251,10 @@ class problema:
                 tablaNueva[i] = nuevaFila
         print("------------------------------Tabla nueva - calculada ---------------------------------")
         self.__printTabla__(2)
+        self.tablaActual = tablaNueva
+        self.tablaSiguiente = []
+        self.__updateOrdenFilas__(pivote)
+        return tablaNueva
 
 
 
@@ -239,13 +263,16 @@ class problema:
 
 def main(problema):
     problema.__agregar_variables_simplex__()
+    problema.__makeOrdenFilas__()
+    problema.__tabularProblema__()
     problema.__print__()
     if problema.metodo == '1':  # Es simplex
-
+        print("------------------------------Tabla inicial---------------------------------")
         problema.__printTabla__(1)
         metodoSimplex(problema)
 
 
 datos = separar_datos()
 problema = problema(datos)
+
 main(problema)
