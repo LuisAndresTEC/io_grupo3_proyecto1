@@ -64,14 +64,10 @@ def agregar_variables_augura_restricciones(lista, cantidadRestricciones):
     return listaFinal
 
 def calculaCasilla(casilla,pivote):
-    print("pivote:")
-    print(pivote)
-    print("casilla:")
-    print(casilla)
-    resultado = float(float(casilla + (casilla * -1)) * float(pivote)).__format__('0.4f')
-    print("resultado:")
-    print(resultado)
-    return float(resultado).__format__("0.4f")
+    casillaNegada = float(float(casilla) * -1.0).__format__()
+    resultado = (float(casilla).__format__('0.4f') + casillaNegada) * float(pivote).__format__('0.4f')
+    print("------Casilla: ", casilla, "Pivote: ", pivote, "Resultado: ", resultado,"------")
+    return resultado
 
 
 def metodoSimplex(problema):
@@ -81,7 +77,6 @@ def metodoSimplex(problema):
     nuevaFila = problema.__nuevaFila__(pivote)
     #problema.__grabarTabla__()
     tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)
-    tablaNueva = problema.__validacionColumnaCeros__(tablaNueva, pivote)
     tablaNueva = problema.__simplexCalculo__(pivote, nuevaFila)
 
 
@@ -173,7 +168,7 @@ class problema:
         return columna.index(menor)
 
     def __determinacionPivote__(self, columna):
-        tabla = self.__tabularProblema__()
+        tabla = self.tablaActual
         divisiones = []
         for i in range(len(tabla) - 1):
             if tabla[i + 1][columna] > float(0).__format__('0.4f'):
@@ -222,12 +217,18 @@ class problema:
     def __simplexCalculo__(self, pivote, nuevaFila):
         tablaActual = self.tablaActual
         tablaNueva = self.tablaSiguiente
+        print("Pivote: " + str(pivote))
         print("------------------------------Tabla nueva - ceros ---------------------------------")
         self.__printTabla__(2)
         for i in range(int(self.cant_restricciones) + 1):
             if i != pivote[1][1]:
+                nuevaFila = []
                 for j in range(len(self.funcion_objetivo)-1):
-                    tablaNueva[i][j] = float(calculaCasilla(tablaActual[i][j], tablaNueva[pivote[1][1]][j])).__format__('0.4f')
+                    casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][0]])*-1 * float(tablaNueva[pivote[1][1]][j]))
+                    if casilla == float(-0).__format__('0.4f'):
+                        casilla = float(0).__format__('0.4f')
+                    nuevaFila.append(float(casilla).__format__('0.4f'))
+                tablaNueva[i] = nuevaFila
         print("------------------------------Tabla nueva - calculada ---------------------------------")
         self.__printTabla__(2)
 
