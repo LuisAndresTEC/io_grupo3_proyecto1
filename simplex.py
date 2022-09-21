@@ -1,5 +1,6 @@
 from asyncore import write
 from mailbox import NoSuchMailboxError
+from unittest import skip
 import numpy as np
 import sys
 import os
@@ -89,16 +90,48 @@ def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVaria
         if cantidadVariablesHolgura[1].__contains__(j):
             contador = 0
             for i in range(len(lista[j])):
-                if lista[j][i] == '<=' or lista[j][i] == '>=' or lista[j][i] == '=':
-                    for k in range(contador):
-                        lista1.append(float(0))
-                    lista1.append(float(1))
-                    for l in range(contador, cantidadVariablesHolgura[0] - 1):
-                        lista1.append(float(0))
+                if lista[j][i] == '<=':
+                    #Agrega variable de holgura
+                    lista1.append(float(1).__format__('0.4f'))
+                    for j in range(len(lista)):
+                        if cantidadVariablesHolgura[1].__contains__(j):
+                            print("acabo de sumar ceros")
+                        else:
+                            lista_modificable = lista[j]
+                            lista_modificable.append(float(0).__format__('0.4f'))
+                            lista[j] = lista_modificable                        
+                    contador += 1
+                    lista1.append('=')
+                elif lista[j][i] == '>=':
+                    lista1.append(float(1).__format__('0.4f')*-1)
+                    for j in range(len(lista)):
+                        if cantidadVariablesHolgura[1].__contains__(j):
+                            print("acabo de sumar ceros")
+                        elif j == 0:
+                            print("Sume un uno a la lista de funcion objetivo")
+                        else:
+                            lista[j].append(float(0).__format__('0.4f'))    
+                    lista1.append(float(1).__format__('0.4f'))
+                    for j in range(len(lista)):
+                        if cantidadVariablesHolgura[1].__contains__(j):
+                            print("acabo de sumar ceros")
+                        else:
+                            lista[j].append(float(0).__format__('0.4f'))   
+
+                    contador += 1
+                    lista1.append('=')
+                elif lista[j][i] == '=':
+                    lista1.append(float(1).__format__('0.4f'))
+                    for j in range(len(lista)):
+                        if cantidadVariablesHolgura[1].__contains__(j):
+                            print("acabo de sumar ceros")
+                        else:
+                            lista[j].append(float(0).__format__('0.4f'))    
                     contador += 1
                     lista1.append('=')
                 else:
                     lista1.append(lista[j][i])
+                print(lista1)
             listaFinal.append(lista1)
         else:
             for i in range(len(lista[j])):
@@ -149,7 +182,7 @@ class problema:
         self.optimizacion = lista[0][1]
         self.cant_v_decision = lista[0][2]
         self.cant_restricciones = lista[0][3]
-        self.cant_v_holgura = lista[0][3]
+        self.cant_v_holgura = []
         self.cant_v_artificial = []
         self.cant_v_exceso = []
         self.funcion_objetivo = self.__despejarFuncionObjetivoMax__(lista[1])
@@ -393,28 +426,7 @@ class problema:
             if self.funcion_objetivo[i] == '>=':
                 self.funcion_objetivo[i] = '<='
                 self.funcion_objetivo[-1] = float(self.funcion_objetivo[-1]) * -1
-    """"Comentar con lucho el tema de cuantas variables se agregan cuando es mayor o igual o cuando es igualdad nada mas, refrescar materia"""
-    # Se encarga de agregar las variables artificiales
-    def __agregarArtificiales__(self):
-        for i in range(len(self.restricciones)):
-            for j in range(len(self.restricciones[i])):
-                if self.restricciones[i][j] == '>=':
-                    self.restricciones[i].append(float(0).__format__('0.4f'))
-                elif self.restricciones[i][j] == '=':
-                    self.restricciones[i].append(float(1).__format__('0.4f'))
-                elif self.restricciones[i][j] == '<=':
-                    self.restricciones[i].append(float(0).__format__('0.4f'))
-    
-    #ES LO MISMO QUE AGREGAR ARTIFIACLES, PREGUNTAR A LUCHO Y COMENTARLO
-    def __agregarExceso__(self):
-        for i in range(len(self.restricciones)):
-            for j in range(len(self.restricciones[i])):
-                if self.restricciones[i][j] == '>=':
-                    self.restricciones[i].append(float(1).__format__('0.4f'))
-                elif self.restricciones[i][j] == '=':
-                    self.restricciones[i].append(float(0).__format__('0.4f'))
-                elif self.restricciones[i][j] == '<=':
-                    self.restricciones[i].append(float(0).__format__('0.4f'))
+
 
 #Esta función ejecuta el algoritmo del metodo simplex
 def ejecutarSimplex(nombre_archivo):
@@ -434,11 +446,7 @@ def ejecutarSimplex(nombre_archivo):
         elif (problema_simplex.optimizacion == "min") \
             and (problema_simplex.cant_v_artificial == 0) \
             and (problema_simplex.cant_v_exceso == 0) :
-            problema_simplex.__cambiarSignoFuncionObjetivo__()
-            problema_simplex.__cambiarSignoRestricciones__()
-            problema_simplex.__agregarArtificiales__()
-            problema_simplex.__agregarExceso__()
-            problema_simplex.__agregarVariablesHolguraSimplexMin__()
+            #problema_simplex.__agregarVariablesHolguraSimplexMin__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
@@ -483,6 +491,8 @@ def main():
             nombre_archivo = sys.argv[2]
             ejecutarSimplex(nombre_archivo)
     else:
+        print("El sistema se ejecutara con el archivo de texto: " + sys.argv[1])
+        print("El resultado se guardara en el archivo: resultado.txt")
         nombre_archivo = sys.argv[1]
         ejecutarSimplex(nombre_archivo)
     exit(0)
