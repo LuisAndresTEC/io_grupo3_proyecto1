@@ -379,7 +379,42 @@ class problema:
         self.cant_v_artificial = [vArtificial, artificiales]
         self.cant_v_exceso = [vExceso, excesos]
 
-
+    #Se encarga de cambiarle los signos a las restricciones que tengan un signo de igualdad   
+    def __cambiarSignoRestricciones__(self):
+        for i in range(len(self.restricciones)):
+            for j in range(len(self.restricciones[i])):
+                if self.restricciones[i][j] == '>=':
+                    self.restricciones[i][j] = '<='
+                    self.restricciones[i][-1] = float(self.restricciones[i][-1]) * -1
+    
+    #Se encarga de cambiarle los signos a la funcion objetivo para que tengan un signo de igualdad
+    def __cambiarSignoFuncionObjetivo__(self):
+        for i in range(len(self.funcion_objetivo)):
+            if self.funcion_objetivo[i] == '>=':
+                self.funcion_objetivo[i] = '<='
+                self.funcion_objetivo[-1] = float(self.funcion_objetivo[-1]) * -1
+    """"Comentar con lucho el tema de cuantas variables se agregan cuando es mayor o igual o cuando es igualdad nada mas, refrescar materia"""
+    # Se encarga de agregar las variables artificiales
+    def __agregarArtificiales__(self):
+        for i in range(len(self.restricciones)):
+            for j in range(len(self.restricciones[i])):
+                if self.restricciones[i][j] == '>=':
+                    self.restricciones[i].append(float(0).__format__('0.4f'))
+                elif self.restricciones[i][j] == '=':
+                    self.restricciones[i].append(float(1).__format__('0.4f'))
+                elif self.restricciones[i][j] == '<=':
+                    self.restricciones[i].append(float(0).__format__('0.4f'))
+    
+    #ES LO MISMO QUE AGREGAR ARTIFIACLES, PREGUNTAR A LUCHO Y COMENTARLO
+    def __agregarExceso__(self):
+        for i in range(len(self.restricciones)):
+            for j in range(len(self.restricciones[i])):
+                if self.restricciones[i][j] == '>=':
+                    self.restricciones[i].append(float(1).__format__('0.4f'))
+                elif self.restricciones[i][j] == '=':
+                    self.restricciones[i].append(float(0).__format__('0.4f'))
+                elif self.restricciones[i][j] == '<=':
+                    self.restricciones[i].append(float(0).__format__('0.4f'))
 
 #Esta función ejecuta el algoritmo del metodo simplex
 def ejecutarSimplex(nombre_archivo):
@@ -392,6 +427,18 @@ def ejecutarSimplex(nombre_archivo):
             and (problema_simplex.cant_v_artificial == 0) \
             and (problema_simplex.cant_v_exceso == 0) :  # Es maximizacion
             problema_simplex.__agregarVariablesHolguraSimplexMax__()
+            problema_simplex.__makeOrdenFilas__()
+            problema_simplex.__tabularProblema__()
+            problema_simplex.__print__()
+            metodoSimplex(problema_simplex)
+        elif (problema_simplex.optimizacion == "min") \
+            and (problema_simplex.cant_v_artificial == 0) \
+            and (problema_simplex.cant_v_exceso == 0) :
+            problema_simplex.__cambiarSignoFuncionObjetivo__()
+            problema_simplex.__cambiarSignoRestricciones__()
+            problema_simplex.__agregarArtificiales__()
+            problema_simplex.__agregarExceso__()
+            problema_simplex.__agregarVariablesHolguraSimplexMin__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
