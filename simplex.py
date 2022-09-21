@@ -42,7 +42,7 @@ def separarDatos(nombre_archivo):
     return datos2
 
 # pasa los enteros originarios del problema a float
-def setNumeros(lista):
+def intToFloat(lista):
     for i in range(len(lista)):
         if (lista[i] == '<=') | (lista[i] == '>=') | (lista[i] == '=') | (lista[i] == '<') | (lista[i] == '>'):
             lista[i] = lista[i]
@@ -51,15 +51,16 @@ def setNumeros(lista):
     return lista
 
 # Esta funcion agrega las variables de holgura que necesita el problema
-def agregar_variables_holgura_objetivo(lista, cantidadRestricciones):
-    for i in range(cantidadRestricciones):
+"""cambiar parametro cantidadRestricciones por cantidad de variables"""
+def agregarVariablesHolguraFuncionObjetivo(lista, cantidadVariablesHolgura):
+    for i in range(cantidadVariablesHolgura):
         lista.append(float(0))
     lista.append('=')
     lista.append(float(0))
     return lista
 
 #ESta función se encarga de vonvertir las desigualdades en igualdades y agrega variables de holgura
-def agregar_variables_holgura_restricciones(lista, cantidadRestricciones):
+def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
     listaFinal = []
     contador = 0
     for j in range(len(lista)):
@@ -69,7 +70,7 @@ def agregar_variables_holgura_restricciones(lista, cantidadRestricciones):
                 for k in range(contador):
                     lista1.append(float(0))
                 lista1.append(float(1))
-                for l in range(contador, cantidadRestricciones - 1):
+                for l in range(contador, cantidadVariablesHolgura - 1):
                     lista1.append(float(0))
                 contador += 1
                 lista1.append('=')
@@ -78,6 +79,35 @@ def agregar_variables_holgura_restricciones(lista, cantidadRestricciones):
 
         listaFinal.append(lista1)
     return listaFinal
+
+# esta función permite agregar las varibles de todos los tipos a las restricciones
+def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVariablesArtificial, cantidadVariablesExceso):
+    listaFinal = []
+    lista1 = []
+    #Este ciclo va a agregar las variables de holgura con 1 en la posicion correcta y 0 en el resto
+    for j in range(len(lista)):
+        if cantidadVariablesHolgura[1].__contains__(j):
+            contador = 0
+            for i in range(len(lista[j])):
+                if lista[j][i] == '<=' or lista[j][i] == '>=' or lista[j][i] == '=':
+                    for k in range(contador):
+                        lista1.append(float(0))
+                    lista1.append(float(1))
+                    for l in range(contador, cantidadVariablesHolgura[0] - 1):
+                        lista1.append(float(0))
+                    contador += 1
+                    lista1.append('=')
+                else:
+                    lista1.append(lista[j][i])
+            listaFinal.append(lista1)
+        else:
+            for i in range(len(lista[j])):
+                for l in range(cantidadVariablesHolgura[0] - 1):
+                    lista1.append(float(0))
+
+
+
+
 
 # Esta función se encarga de hacer el calculo respectivo al nuevo valor en el proceso de calculo de simplex
 def calculaCasilla(casilla,pivote):
@@ -111,12 +141,17 @@ def metodoSimplex(problema):
         iteracion += 1
 
 
+
+
 class problema:
     def __init__(self, lista):
         self.metodo = lista[0][0]
         self.optimizacion = lista[0][1]
         self.cant_v_decision = lista[0][2]
         self.cant_restricciones = lista[0][3]
+        self.cant_v_holgura = lista[0][3]
+        self.cant_v_artificial = []
+        self.cant_v_exceso = []
         self.funcion_objetivo = self.__despejarFuncionObjetivoMax__(lista[1])
         self.restricciones = lista[2:]
         self.tablaActual = []
@@ -124,6 +159,7 @@ class problema:
         self.ordenFilas = []
 
     #pasa a negativo los valores de la funcion objetivo
+    """uptate Dos Faces"""
     def __despejarFuncionObjetivoMax__(self, lista):
         for i in range(len(lista)):
             if lista[i] == '=':
@@ -133,6 +169,7 @@ class problema:
         return lista
 
     # Esta función se encarga de inicializar la lista de orden de las filas = ["U",3,4,5]
+    """uptate Dos Faces"""
     def __makeOrdenFilas__(self):
         orden = []
         orden.append("U")
@@ -145,21 +182,24 @@ class problema:
         return self
 
     #Esta función se encarga de actualizar la lista de orden de las filas
+    """uptate Dos Faces"""
     def __actualizarOrdenFilas__(self, pivote):
         self.ordenFilas[pivote[1][0]] = int(pivote[1][1])+1
         #print("Orden de las filas: ", self.ordenFilas)
         writeFile("\nOrden de las filas: " + str(self.ordenFilas))
 
     # Esta función se encarga de pasar los numeros de las restricciones a la funcion que los convierte en float
+    """uptate Dos Faces"""
     def __setRestriccionesFloats__(self):
         for i in range(len(self.restricciones)):
-            self.restricciones[i] = setNumeros(self.restricciones[i])
+            self.restricciones[i] = intToFloat(self.restricciones[i])
 
     #Esta función trabaja como coordinadora en el proceso de agregado de variables de holgura, enn restricciones y en la funcion objetivo
+    """ver self.objetivo y intToFloat"""
     def __agregarVariablesHolguraSimplexMax__(self):
-        self.objetivo = agregar_variables_holgura_objetivo(self.funcion_objetivo, int(self.cant_restricciones))
-        self.objetivo = setNumeros(self.objetivo)
-        self.restricciones = agregar_variables_holgura_restricciones(self.restricciones, int(self.cant_restricciones))
+        self.objetivo = agregarVariablesHolguraFuncionObjetivo(self.funcion_objetivo, int(self.cant_v_holgura))
+        self.objetivo = intToFloat(self.objetivo)
+        self.restricciones = agregarVariablesHolguraRestricciones(self.restricciones, int(self.cant_restricciones))
         self.__setRestriccionesFloats__()
         return self
 
@@ -220,7 +260,7 @@ class problema:
                 if j == k:
                     auxiliar[j-1] = resultados[self.ordenFilas.index(k)-1]
         solucion.append(auxiliar)
-        writeFile("\nSolucion inicial: " + str(solucion))
+        writeFile("\nSolucion actual: " + str(solucion))
         return solucion
 
     #Esta función se encarga de deteriminar cual va a ser la columna pivote
@@ -241,7 +281,7 @@ class problema:
 
     #Esta función se encarga de deteriminar cual va a ser el pivote dado el indice de la columna pivote que se va a usar
     #retorna una lista con la estructura [menor que resulta de las divisiones, [fila del pivote, columna del pivote]]
-    """No es muy eficiente paro tocarla implica una parida por los tipos de datos"""
+    """No es muy eficiente pero tocarla implica una parida por los tipos de datos"""
     def __determinacionPivote__(self, columna):
         tabla = self.tablaActual
         divisiones = []
@@ -259,6 +299,7 @@ class problema:
         return pivote
 
     #Esta función se encarga de generar la nueva fila pivote a base del pivote dado
+    """uptate Dos Faces"""
     def __nuevaFila__(self, pivote):
         tabla = self.tablaActual
         fila = pivote[1][0]
@@ -283,27 +324,18 @@ class problema:
         self.tablaSiguiente = tabla
         return tabla
 
-    """ HABLAR CON PABLO SOBRE ESTA FUNCION """
-    #Esta función, no sirve necesita reparación solo escribe taxto no listas
-    def __grabarTabla__(self):
-        tabla = self.tablaActual
-        writeFile(tabla)
-
     #Esta función coordina el calculo la iteracion del metodo simplex
     def __simplexMaxCalculo__(self, pivote, nuevaFila):
         tablaActual = self.tablaActual
         tablaNueva = self.tablaSiguiente
         tablaActualText = "\n--------------------------------Tabla Actual---------------------------------"
         writeFile(tablaActualText)
-        #print(tablaActualText)
         self.__printTabla__(1)
         writeFile("\nPivote: " + str(pivote))
-        #print("\nPivote: " + str(pivote))
         tablaCerosText = "\n---------------------------Tabla nueva - ceros ------------------------------"
         writeFile(tablaCerosText)
-        #print(tablaCerosText)
         self.__printTabla__(2)
-        for i in range(int(self.cant_restricciones) + 1):
+        for i in range(int(self.cant_restricciones) + 1):#cambiarlo por cantidad de variables
             if i != pivote[1][0]:
                 nuevaFila = []
                 for j in range(len(self.funcion_objetivo)-1):
@@ -321,19 +353,53 @@ class problema:
         self.__actualizarOrdenFilas__(pivote)
         return tablaNueva
 
+    # Esta función va a verificar que simlos traen las restricciones y dira la cantidad de las diferentes variables que se necesitan
+    def cantidadVariablesRestricciones(self):
+        vHolgura = 0
+        holguras = []
+        vArtificial = 0
+        artificiales = []
+        vExceso = 0
+        excesos = []
+        for i in range(len(self.restricciones)):
+            for j in range(len(self.restricciones[i])):
+                if self.restricciones[i][j] == '<=':
+                    vHolgura += 1
+                    holguras.append(i)
+                elif self.restricciones[i][j] == '>=':
+                    vArtificial += 1
+                    artificiales.append(i)
+                    vExceso += 1
+                    excesos.append(i)
+                elif self.restricciones[i][j] == '=':
+                    vArtificial += 1
+                    artificiales.append(i)
+
+        self.cant_v_holgura = [vHolgura, holguras]
+        self.cant_v_artificial = [vArtificial, artificiales]
+        self.cant_v_exceso = [vExceso, excesos]
+
+
+
 #Esta función ejecuta el algoritmo del metodo simplex
 def ejecutarSimplex(nombre_archivo):
     removeFile()
     datos = separarDatos(nombre_archivo)
     problema_simplex = problema(datos)
-    problema_simplex.__agregarVariablesHolguraSimplexMax__()
-    problema_simplex.__makeOrdenFilas__()
-    problema_simplex.__tabularProblema__()
-    problema_simplex.__print__()
+    problema_simplex.cantidadVariablesRestricciones()
     if problema_simplex.metodo == '1':  # Es simplex
-        metodoSimplex(problema_simplex)
-    if problema_simplex.metodo == '2': # Es dos fases
+        if (problema_simplex.optimizacion == "max") \
+            and (problema_simplex.cant_v_artificial == 0) \
+            and (problema_simplex.cant_v_exceso == 0) :  # Es maximizacion
+            problema_simplex.__agregarVariablesHolguraSimplexMax__()
+            problema_simplex.__makeOrdenFilas__()
+            problema_simplex.__tabularProblema__()
+            problema_simplex.__print__()
+            metodoSimplex(problema_simplex)
+    elif problema_simplex.metodo == '2': # Es dos fases
+
         print("No implementado")
+
     else:
         print("No existe el metodo ingresado")
         
