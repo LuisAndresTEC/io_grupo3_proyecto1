@@ -81,59 +81,65 @@ def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
         listaFinal.append(lista1)
     return listaFinal
 
-def agregarCeros(lista1, j):
-    for k in range(len(lista1)):
-        if k != j:
-            for u in range(len(lista1[k])):
-                if lista1[k][u] == '=':
-                    lista1[k][u - 1].append(float(0).__format__('0.4f'))
-    return lista1
 
 
 # esta función permite agregar las varibles de todos los tipos a las restricciones
 def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVariablesArtificial, cantidadVariablesExceso):
     listaFinal = []
-    lista1 = []
     print(cantidadVariablesArtificial, cantidadVariablesHolgura, cantidadVariablesExceso)
-    #Este ciclo va a agregar las variables de holgura con 1 en la posicion correcta y 0 en el resto
+    #Este ciclo va a agregar todas las variables antes de la igualdad en una lista de restricciones
     for j in range(len(lista)):
-        if cantidadVariablesHolgura[1].__contains__(j):
-            for i in range(len(lista[j])):
-                if lista[j][i] == '<=':
-                    #Agrega variable de holgura
-                    lista1.append(float(1).__format__('0.4f'))
-                    lista1 = agregarCeros(lista1, j)
-                    lista1.append('=')
-                else:
-                    lista1.append(lista[j][i])
-                print(lista1)
-            listaFinal.append(lista1)
-        if cantidadVariablesArtificial[1].__contains__(j):
-            if lista[j][i] == '>=':
-                lista1.append(float(1).__format__('0.4f'))
-                lista1 = agregarCeros(lista1, j)
-                lista1.append('=')
+        listaTemporal = []
+        for i in range(len(lista[j])):
+            if lista[j][i] == '<=' or lista[j][i] == '>=' or lista[j][i] == '=':
+                break
+            else:
+                listaTemporal.append(lista[j][i])
+        listaFinal.append(listaTemporal)
+        print(listaFinal)
+
+    #Este ciclo va a agregar las variables de holgura, exceso y artificial a las restricciones
+    for j in range(len(lista)):
+        listaTemporal = []
+        listaTemporal = listaFinal[j]
+        for i in range(len(lista[j])):
+            if lista[j][i] == '<=':
+                #Agrega variable de holgura
+                listaTemporal.append(float(1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaFinal[j]=listaTemporal
+            elif lista[j][i] == '>=':
+                #Agrega variable de holgura
+                listaTemporal.append(float(-1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaTemporal.append(float(1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaFinal[j]=listaTemporal
             elif lista[j][i] == '=':
-                lista1.append(float(1).__format__('0.4f'))
-                lista1 = agregarCeros(lista1, j)
-                lista1.append('=')
-            else:
-                lista1.append(lista[j][i])
-        if cantidadVariablesExceso[1].__contains__(j):
-            if lista[j][i] == '>=':
-                lista1.append(float(1).__format__('0.4f') * -1)
-                lista1 = agregarCeros(lista1, j)
-            else:
-                lista1.append(lista[j][i])
-        else:
-            for i in range(len(lista[j])):
-                for l in range(cantidadVariablesHolgura[0] - 1):
-                    lista1.append(float(0))
+                #Agrega variable de holgura
+                listaTemporal.append(float(1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaFinal[j]=listaTemporal
+    #Este ciclo agrega los iguales y los resultados de cada restricción
+    for j in range(len(lista)):
+        listaTemporal = []
+        listaTemporal = listaFinal[j]
+        for i in range(len(lista[j])):
+            if lista[j][i] == '>=' or lista[j][i] == '=' or lista[j][i] == '<=':
+                #Agrega variable de exceso
+                listaTemporal.append('=')
+                listaTemporal.append(lista[j][i+1])
+                listaFinal[j]=listaTemporal
     print(listaFinal)
-
-
-
-
+    return listaFinal
 
 # Esta función se encarga de hacer el calculo respectivo al nuevo valor en el proceso de calculo de simplex
 def calculaCasilla(casilla,pivote):
@@ -455,7 +461,6 @@ def ejecutarSimplex(nombre_archivo):
             problema_simplex.__print__()
             metodoSimplex(problema_simplex)
     elif problema_simplex.metodo == '2': # Es dos fases
-
         print("No implementado")
 
     else:
