@@ -84,12 +84,113 @@ def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
         listaFinal.append(lista1)
     return listaFinal
 
+# esta función permite agregar las varibles de todos los tipos a las restricciones
+def agregarVariablesRestriccionesMin(funcionObjetivo, lista):
+    listaFinal = []
+    indiceRestas = []
+    listaArtificiales = []
+
+    #Este ciclo va a agregar todas las variables antes de la igualdad en una lista de restricciones
+    for j in range(len(lista)):
+        listaTemporal = []
+        listaArtificiales = []
+        for i in range(len(lista[j])):
+            if lista[j][i] == '<=' or lista[j][i] == '>=' or lista[j][i] == '=':
+                break
+            else:
+                listaTemporal.append(lista[j][i])
+                listaArtificiales.append(float(0).__format__('0.4f'))
+        listaFinal.append(listaTemporal)
+    variablesBasicas = listaFinal
+    
+
+    #Este ciclo va a agregar las variables de holgura, exceso y artificial a las restricciones
+    for j in range(len(lista)):
+        listaTemporal = []
+        listaTemporal = listaFinal[j]
+        for i in range(len(lista[j])):
+            if lista[j][i] == '<=':
+                #Agrega variable de holgura
+                listaTemporal.append(float(1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaFinal[j]=listaTemporal
+                listaArtificiales.append(float(0).__format__('0.4f'))
+            elif lista[j][i] == '>=':
+                #Agrega variable de exceso
+                listaTemporal.append(float(-1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaArtificiales.append(float(0).__format__('0.4f'))
+                #Agrega variable artificial
+                listaTemporal.append(float(1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaFinal[j]=listaTemporal
+                indiceRestas.append(j)
+                listaArtificiales.append(float(1).__format__('0.4f'))
+            elif lista[j][i] == '=':
+                #Agrega variable artificial
+                listaTemporal.append(float(1).__format__('0.4f'))
+                for k in range(len(listaFinal)):
+                    if k != j:
+                        listaFinal[k].append(float(0).__format__('0.4f'))
+                listaFinal[j]=listaTemporal
+                indiceRestas.append(j)
+                listaArtificiales.append(float(1).__format__('0.4f'))
+    
+    #Este ciclo agrega los iguales y los resultados de cada restricción
+    for j in range(len(lista)):
+        listaTemporal = []
+        listaTemporal = listaFinal[j]
+        for i in range(len(lista[j])):
+            if lista[j][i] == '>=' or lista[j][i] == '=' or lista[j][i] == '<=':
+                #Agrega variable de exceso
+                listaTemporal.append('=')
+                listaTemporal.append(lista[j][i+1])
+                listaFinal[j]=listaTemporal
+
+
+    listaArtificiales.append('=')
+    listaArtificiales.append(float(0).__format__('0.4f'))
+
+    restriccionesRestas = []
+    for j in range(len(indiceRestas)):
+        restriccionesRestas.append(listaFinal[indiceRestas[j]])
+    
+    listaTemporal = []
+    for i in range(len(listaArtificiales)):
+        if listaArtificiales[i] == "=":
+            listaTemporal.append("=")
+            listaTemporal.append(float(listaArtificiales[i+1])*-1)
+            break
+        listaTemporal.append(float(listaArtificiales[i])*-1)
+
+    intToFloat(listaTemporal)
+    listaArtificiales = listaTemporal
+    print(listaArtificiales)
+    print(restriccionesRestas)
+    funcionTemporal = []
+    for i in range(len(restriccionesRestas[0])):
+        suma = 0.0000
+        if restriccionesRestas[0][i] == "=":
+            funcionTemporal.append((float(restriccionesRestas[0][i+1])*-1)+(float(restriccionesRestas[1][i+1])*-1)+(float(listaArtificiales[i+1])*-1))    
+            break
+        funcionTemporal.append((float(restriccionesRestas[0][i])*-1)+(float(restriccionesRestas[1][i])*-1)+(float(listaArtificiales[i])*-1))
+
+    intToFloat(funcionTemporal)
+    print(funcionTemporal)
+    funcionObjetivo = funcionTemporal
+    print(listaFinal)
+    return listaFinal, funcionObjetivo
 
 
 # esta función permite agregar las varibles de todos los tipos a las restricciones
-def agregarVariablesRestricciones(funcionObjetivo, lista, cantidadVariablesHolgura, cantidadVariablesArtificial, cantidadVariablesExceso):
+def agregarVariablesRestriccionesMax(funcionObjetivo, lista):
     listaFinal = []
-    print(cantidadVariablesArtificial, cantidadVariablesHolgura, cantidadVariablesExceso)
     #Este ciclo va a agregar todas las variables antes de la igualdad en una lista de restricciones
     for j in range(len(lista)):
         listaTemporal = []
@@ -117,7 +218,7 @@ def agregarVariablesRestricciones(funcionObjetivo, lista, cantidadVariablesHolgu
             elif lista[j][i] == '>=':
                 #Agrega variable de holgura
                 listaTemporal.append(float(-1).__format__('0.4f'))
-                funcionObjetivo.append(float(1).__format__('0.4f'))
+                funcionObjetivo.append(float(0).__format__('0.4f'))
                 for k in range(len(listaFinal)):
                     if k != j:
                         listaFinal[k].append(float(0).__format__('0.4f'))
@@ -135,6 +236,8 @@ def agregarVariablesRestricciones(funcionObjetivo, lista, cantidadVariablesHolgu
                     if k != j:
                         listaFinal[k].append(float(0).__format__('0.4f'))
                 listaFinal[j]=listaTemporal
+   
+   
     #Este ciclo agrega los iguales y los resultados de cada restricción
     for j in range(len(lista)):
         listaTemporal = []
@@ -248,7 +351,18 @@ class problema:
     #Esta función trabaja como coordinadora en el proceso de agregado de variables de holgura, enn restricciones y en la funcion objetivo
     """ver self.objetivo y intToFloat"""
     def __agregarVariablesHolguraSimplexMax__(self):
-        tablaCompleta = agregarVariablesRestricciones(self.funcionObjetivo, self.restricciones, self.cant_v_holgura, self.cant_v_artificial, self.cant_v_exceso)
+        tablaCompleta = agregarVariablesRestriccionesMax(self.funcionObjetivo, self.restricciones)
+        self.restricciones = tablaCompleta[0]
+        self.funcionObjetivo = tablaCompleta[1]
+        self.funcionObjetivo = intToFloat(self.funcionObjetivo)
+        print(self.funcionObjetivo)
+        self.__setRestriccionesFloats__()
+        return self
+
+
+
+    def __agregarVariablesHolguraSimplexMin__(self):
+        tablaCompleta = agregarVariablesRestriccionesMin(self.funcionObjetivo, self.restricciones)
         self.restricciones = tablaCompleta[0]
         self.funcionObjetivo = tablaCompleta[1]
         self.funcionObjetivo = intToFloat(self.funcionObjetivo)
@@ -456,23 +570,26 @@ def ejecutarSimplex(nombre_archivo):
     problema_simplex.cantidadVariablesRestricciones()
     if problema_simplex.metodo == '1':  # Es simplex
         if (problema_simplex.optimizacion == "max"):
-            """and (problema_simplex.cant_v_artificial == []) \
-            and (problema_simplex.cant_v_exceso == []) :  # Es maximizacion"""
             problema_simplex.__agregarVariablesHolguraSimplexMax__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
             metodoSimplex(problema_simplex)
         elif (problema_simplex.optimizacion == "min"):
-            """and (problema_simplex.cant_v_artificial == []) \
-            and (problema_simplex.cant_v_exceso == []) :  # Es maximizacion"""
-            #problema_simplex.__agregarVariablesHolguraSimplexMin__()
+            print("No se puede resolver minimizacion con el metodo simplex")
+    elif problema_simplex.metodo == '2': # Es dos fases
+        if (problema_simplex.optimizacion == "max"):
+            problema_simplex.__agregarVariablesHolguraSimplexMax__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
             metodoSimplex(problema_simplex)
-    elif problema_simplex.metodo == '2': # Es dos fases
-        print("No implementado")
+        elif (problema_simplex.optimizacion == "min"):
+            problema_simplex.__agregarVariablesHolguraSimplexMin__()
+            problema_simplex.__makeOrdenFilas__()
+            problema_simplex.__tabularProblema__()
+            problema_simplex.__print__()
+            metodoSimplex(problema_simplex)
 
     else:
         print("No existe el metodo ingresado")
