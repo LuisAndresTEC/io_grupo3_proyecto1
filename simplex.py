@@ -232,7 +232,7 @@ class problema:
     def __agregarVariablesHolguraSimplexMax__(self):
         self.objetivo = agregarVariablesHolguraFuncionObjetivo(self.funcion_objetivo, int(self.cant_v_holgura))
         self.objetivo = intToFloat(self.objetivo)
-        self.restricciones = agregarVariablesHolguraRestricciones(self.restricciones, int(self.cant_restricciones))
+        self.restricciones = agregarVariablesRestricciones(self.restricciones, int(self.cant_restricciones))
         self.__setRestriccionesFloats__()
         return self
 
@@ -435,17 +435,17 @@ def ejecutarSimplex(nombre_archivo):
     problema_simplex = problema(datos)
     problema_simplex.cantidadVariablesRestricciones()
     if problema_simplex.metodo == '1':  # Es simplex
-        if (problema_simplex.optimizacion == "max") \
-            and (problema_simplex.cant_v_artificial == 0) \
-            and (problema_simplex.cant_v_exceso == 0) :  # Es maximizacion
+        if (problema_simplex.optimizacion == "max"):
+            """and (problema_simplex.cant_v_artificial == []) \
+            and (problema_simplex.cant_v_exceso == []) :  # Es maximizacion"""
             problema_simplex.__agregarVariablesHolguraSimplexMax__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
             metodoSimplex(problema_simplex)
-        elif (problema_simplex.optimizacion == "min") \
-            and (problema_simplex.cant_v_artificial == 0) \
-            and (problema_simplex.cant_v_exceso == 0) :
+        elif (problema_simplex.optimizacion == "min"):
+            """and (problema_simplex.cant_v_artificial == []) \
+            and (problema_simplex.cant_v_exceso == []) :  # Es maximizacion"""
             #problema_simplex.__agregarVariablesHolguraSimplexMin__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
