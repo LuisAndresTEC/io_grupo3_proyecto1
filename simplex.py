@@ -53,12 +53,15 @@ def intToFloat(lista):
 
 # Esta funcion agrega las variables de holgura que necesita el problema
 """cambiar parametro cantidadRestricciones por cantidad de variables"""
-def agregarVariablesHolguraFuncionObjetivo(lista, cantidadVariablesHolgura):
+"""def agregarVariablesHolguraFuncionObjetivo(funcionObjetivo, restricciones, opcion):
+    for j in range(len(restricciones)):
+        
     for i in range(cantidadVariablesHolgura):
-        lista.append(float(0))
-    lista.append('=')
-    lista.append(float(0))
-    return lista
+        funcionObjetivo.append(float(0))
+    funcionObjetivo.append('=')
+    funcionObjetivo.append(float(0))
+    return funcionObjetivo
+"""
 
 #ESta función se encarga de vonvertir las desigualdades en igualdades y agrega variables de holgura
 def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
@@ -84,7 +87,7 @@ def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
 
 
 # esta función permite agregar las varibles de todos los tipos a las restricciones
-def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVariablesArtificial, cantidadVariablesExceso):
+def agregarVariablesRestricciones(funcionObjetivo, lista, cantidadVariablesHolgura, cantidadVariablesArtificial, cantidadVariablesExceso):
     listaFinal = []
     print(cantidadVariablesArtificial, cantidadVariablesHolgura, cantidadVariablesExceso)
     #Este ciclo va a agregar todas las variables antes de la igualdad en una lista de restricciones
@@ -106,6 +109,7 @@ def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVaria
             if lista[j][i] == '<=':
                 #Agrega variable de holgura
                 listaTemporal.append(float(1).__format__('0.4f'))
+                funcionObjetivo.append(float(0).__format__('0.4f'))
                 for k in range(len(listaFinal)):
                     if k != j:
                         listaFinal[k].append(float(0).__format__('0.4f'))
@@ -113,10 +117,12 @@ def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVaria
             elif lista[j][i] == '>=':
                 #Agrega variable de holgura
                 listaTemporal.append(float(-1).__format__('0.4f'))
+                funcionObjetivo.append(float(1).__format__('0.4f'))
                 for k in range(len(listaFinal)):
                     if k != j:
                         listaFinal[k].append(float(0).__format__('0.4f'))
                 listaTemporal.append(float(1).__format__('0.4f'))
+                funcionObjetivo.append(float(0).__format__('0.4f'))
                 for k in range(len(listaFinal)):
                     if k != j:
                         listaFinal[k].append(float(0).__format__('0.4f'))
@@ -124,6 +130,7 @@ def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVaria
             elif lista[j][i] == '=':
                 #Agrega variable de holgura
                 listaTemporal.append(float(1).__format__('0.4f'))
+                funcionObjetivo.append(float(0).__format__('0.4f'))
                 for k in range(len(listaFinal)):
                     if k != j:
                         listaFinal[k].append(float(0).__format__('0.4f'))
@@ -138,8 +145,10 @@ def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVaria
                 listaTemporal.append('=')
                 listaTemporal.append(lista[j][i+1])
                 listaFinal[j]=listaTemporal
+    funcionObjetivo.append('=')
+    funcionObjetivo.append(float(0).__format__('0.4f'))
     print(listaFinal)
-    return listaFinal
+    return listaFinal, funcionObjetivo
 
 # Esta función se encarga de hacer el calculo respectivo al nuevo valor en el proceso de calculo de simplex
 def calculaCasilla(casilla,pivote):
@@ -184,7 +193,7 @@ class problema:
         self.cant_v_holgura = []
         self.cant_v_artificial = []
         self.cant_v_exceso = []
-        self.funcion_objetivo = self.__despejarFuncionObjetivoMax__(lista[1])
+        self.funcionObjetivo = self.__despejarFuncionObjetivoMax__(lista[1])
         self.restricciones = lista[2:]
         self.tablaActual = []
         self.tablaSiguiente = []
@@ -211,8 +220,7 @@ class problema:
             print("No implementado")
             #se hace  alista de los indices d elas variables identificadoras de los numeros
             listaFilas = []
-            base = int(sel.cant_v_decision)
-
+            base = int(self.cant_v_decision)
         else:
             for i in range(len(self.restricciones)):
                 orden.append(i + 1 + int(self.cant_v_decision))
@@ -239,9 +247,11 @@ class problema:
     #Esta función trabaja como coordinadora en el proceso de agregado de variables de holgura, enn restricciones y en la funcion objetivo
     """ver self.objetivo y intToFloat"""
     def __agregarVariablesHolguraSimplexMax__(self):
-        self.objetivo = agregarVariablesHolguraFuncionObjetivo(self.funcion_objetivo, int(self.cant_v_holgura[0]))#esto necesita un update
-        self.objetivo = intToFloat(self.objetivo)
-        self.restricciones = agregarVariablesRestricciones(self.restricciones, self.cant_v_holgura, self.cant_v_artificial, self.cant_v_exceso)
+        tablaCompleta = agregarVariablesRestricciones(self.funcionObjetivo, self.restricciones, self.cant_v_holgura, self.cant_v_artificial, self.cant_v_exceso)
+        self.restricciones = tablaCompleta[0]
+        self.funcionObjetivo = tablaCompleta[1]
+        self.funcionObjetivo = intToFloat(self.funcionObjetivo)
+        print(self.funcionObjetivo)
         self.__setRestriccionesFloats__()
         return self
 
@@ -249,9 +259,9 @@ class problema:
     def __tabularProblema__(self):
         tabla = []
         tabla1 = []
-        for j in range(len(self.funcion_objetivo)):
-            if self.funcion_objetivo[j] != '=':
-                tabla1.append(float(self.funcion_objetivo[j]).__format__('0.4f'))
+        for j in range(len(self.funcionObjetivo)):
+            if self.funcionObjetivo[j] != '=':
+                tabla1.append(float(self.funcionObjetivo[j]).__format__('0.4f'))
         tabla.append(tabla1)
         for i in range(len(self.restricciones)):
             tabla2 = []
@@ -281,7 +291,7 @@ class problema:
               "Optimizacion: " + self.optimizacion + "\n" +
               "Cantidad de variables de decision: " + self.cant_v_decision + "\n" +
               "Cantidad de restricciones: " + self.cant_restricciones + "\n" +
-              "Funcion objetivo: " + str(self.funcion_objetivo) + "\n" +
+              "Funcion objetivo: " + str(self.funcionObjetivo) + "\n" +
               "Restricciones: " + str(self.restricciones))
         #print(informacionProblemaText)
         writeFile(informacionProblemaText)
@@ -295,7 +305,7 @@ class problema:
         resultados = []
         for i in range(1, len(self.tablaActual)):
             resultados.append(self.tablaActual[i][-1])
-        for i in range(len(self.funcion_objetivo)-2):
+        for i in range(len(self.funcionObjetivo)-2):
             auxiliar.append(float(0).__format__('0.4f'))
         for j in range(len(auxiliar)+1):
             for k in self.ordenFilas:
@@ -358,7 +368,7 @@ class problema:
         for i in range(int(self.cant_restricciones) + 1):
             if i != pivote[1][0]:
                 fila = []
-                for j in range(len(self.funcion_objetivo)-1):
+                for j in range(len(self.funcionObjetivo)-1):
                     fila.append(float(0).__format__('0.4f'))
                 tabla.append(fila)
             else:
@@ -380,7 +390,7 @@ class problema:
         for i in range(int(self.cant_restricciones) + 1):#cambiarlo por cantidad de variables
             if i != pivote[1][0]:
                 nuevaFila = []
-                for j in range(len(self.funcion_objetivo)-1):
+                for j in range(len(self.funcionObjetivo)-1):
                     casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][1]])*-1 * float(tablaNueva[pivote[1][0]][j]))
                     if casilla == float(-0).__format__('0.4f'):
                         casilla = float(0).__format__('0.4f')
@@ -431,10 +441,10 @@ class problema:
     
     #Se encarga de cambiarle los signos a la funcion objetivo para que tengan un signo de igualdad
     def __cambiarSignoFuncionObjetivo__(self):
-        for i in range(len(self.funcion_objetivo)):
-            if self.funcion_objetivo[i] == '>=':
-                self.funcion_objetivo[i] = '<='
-                self.funcion_objetivo[-1] = float(self.funcion_objetivo[-1]) * -1
+        for i in range(len(self.funcionObjetivo)):
+            if self.funcionObjetivo[i] == '>=':
+                self.funcionObjetivo[i] = '<='
+                self.funcionObjetivo[-1] = float(self.funcionObjetivo[-1]) * -1
 
 
 #Esta función ejecuta el algoritmo del metodo simplex
