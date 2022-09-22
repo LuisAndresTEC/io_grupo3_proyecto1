@@ -81,62 +81,55 @@ def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
         listaFinal.append(lista1)
     return listaFinal
 
+def agregarCeros(lista1, j):
+    for k in range(len(lista1)):
+        if k != j:
+            for u in range(len(lista1[k])):
+                if lista1[k][u] == '=':
+                    lista1[k][u - 1].append(float(0).__format__('0.4f'))
+    return lista1
+
+
 # esta función permite agregar las varibles de todos los tipos a las restricciones
 def agregarVariablesRestricciones(lista, cantidadVariablesHolgura, cantidadVariablesArtificial, cantidadVariablesExceso):
     listaFinal = []
     lista1 = []
+    print(cantidadVariablesArtificial, cantidadVariablesHolgura, cantidadVariablesExceso)
     #Este ciclo va a agregar las variables de holgura con 1 en la posicion correcta y 0 en el resto
     for j in range(len(lista)):
         if cantidadVariablesHolgura[1].__contains__(j):
-            contador = 0
             for i in range(len(lista[j])):
                 if lista[j][i] == '<=':
                     #Agrega variable de holgura
                     lista1.append(float(1).__format__('0.4f'))
-                    for j in range(len(lista)):
-                        if cantidadVariablesHolgura[1].__contains__(j):
-                            print("acabo de sumar ceros")
-                        else:
-                            lista_modificable = lista[j]
-                            lista_modificable.append(float(0).__format__('0.4f'))
-                            lista[j] = lista_modificable                        
-                    contador += 1
-                    lista1.append('=')
-                elif lista[j][i] == '>=':
-                    lista1.append(float(1).__format__('0.4f')*-1)
-                    for j in range(len(lista)):
-                        if cantidadVariablesHolgura[1].__contains__(j):
-                            print("acabo de sumar ceros")
-                        elif j == 0:
-                            print("Sume un uno a la lista de funcion objetivo")
-                        else:
-                            lista[j].append(float(0).__format__('0.4f'))    
-                    lista1.append(float(1).__format__('0.4f'))
-                    for j in range(len(lista)):
-                        if cantidadVariablesHolgura[1].__contains__(j):
-                            print("acabo de sumar ceros")
-                        else:
-                            lista[j].append(float(0).__format__('0.4f'))   
-
-                    contador += 1
-                    lista1.append('=')
-                elif lista[j][i] == '=':
-                    lista1.append(float(1).__format__('0.4f'))
-                    for j in range(len(lista)):
-                        if cantidadVariablesHolgura[1].__contains__(j):
-                            print("acabo de sumar ceros")
-                        else:
-                            lista[j].append(float(0).__format__('0.4f'))    
-                    contador += 1
+                    lista1 = agregarCeros(lista1, j)
                     lista1.append('=')
                 else:
                     lista1.append(lista[j][i])
                 print(lista1)
             listaFinal.append(lista1)
+        if cantidadVariablesArtificial[1].__contains__(j):
+            if lista[j][i] == '>=':
+                lista1.append(float(1).__format__('0.4f'))
+                lista1 = agregarCeros(lista1, j)
+                lista1.append('=')
+            elif lista[j][i] == '=':
+                lista1.append(float(1).__format__('0.4f'))
+                lista1 = agregarCeros(lista1, j)
+                lista1.append('=')
+            else:
+                lista1.append(lista[j][i])
+        if cantidadVariablesExceso[1].__contains__(j):
+            if lista[j][i] == '>=':
+                lista1.append(float(1).__format__('0.4f') * -1)
+                lista1 = agregarCeros(lista1, j)
+            else:
+                lista1.append(lista[j][i])
         else:
             for i in range(len(lista[j])):
                 for l in range(cantidadVariablesHolgura[0] - 1):
                     lista1.append(float(0))
+    print(listaFinal)
 
 
 
@@ -206,9 +199,19 @@ class problema:
     def __makeOrdenFilas__(self):
         orden = []
         orden.append("U")
-        for i in range(len(self.restricciones)):
-            orden.append(i + 1 + int(self.cant_v_decision))
-        self.ordenFilas = orden
+        if (self.cant_v_holgura[0] > 0) \
+                and (self.cant_v_artificial[0] > 0) \
+                and (self.cant_v_exceso[0] > 0):
+            print("No implementado")
+            #se hace  alista de los indices d elas variables identificadoras de los numeros
+            listaFilas = []
+            base = int(sel.cant_v_decision)
+
+        else:
+            for i in range(len(self.restricciones)):
+                orden.append(i + 1 + int(self.cant_v_decision))
+            self.ordenFilas = orden
+
         #print("Orden de las filas: ", self.ordenFilas)
         writeFile("\nOrden de las filas: ")
         writeFile(self.ordenFilas)
@@ -230,9 +233,9 @@ class problema:
     #Esta función trabaja como coordinadora en el proceso de agregado de variables de holgura, enn restricciones y en la funcion objetivo
     """ver self.objetivo y intToFloat"""
     def __agregarVariablesHolguraSimplexMax__(self):
-        self.objetivo = agregarVariablesHolguraFuncionObjetivo(self.funcion_objetivo, int(self.cant_v_holgura))
+        self.objetivo = agregarVariablesHolguraFuncionObjetivo(self.funcion_objetivo, int(self.cant_v_holgura[0]))#esto necesita un update
         self.objetivo = intToFloat(self.objetivo)
-        self.restricciones = agregarVariablesRestricciones(self.restricciones, int(self.cant_restricciones))
+        self.restricciones = agregarVariablesRestricciones(self.restricciones, self.cant_v_holgura, self.cant_v_artificial, self.cant_v_exceso)
         self.__setRestriccionesFloats__()
         return self
 
@@ -479,6 +482,8 @@ def main():
     if len(sys.argv) <= 1:
         print("No se han ingresado parametros ni archivos de entrada por lo que el programa se cerrara")
         exit(0)
+
+
     if sys.argv[1] == "-h":
         if len(sys.argv) <= 2:
             print(helpMessage)
