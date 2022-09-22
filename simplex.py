@@ -163,6 +163,9 @@ def metodoSimplex(problema):
     spacer = "\n-----------------------------------------------------------------------------\n"
 
     while bandera:
+        bandera , colMenor = problema.__indiceColumnaMenor__()
+        if bandera == False:
+            break
         numero_iteracion = "-----------------------------Iteracion numero: " + str(iteracion) + "-----------------------------"
         #print(spacer)
         #print(numero_iteracion)
@@ -170,7 +173,6 @@ def metodoSimplex(problema):
         writeFile(spacer)
         writeFile(numero_iteracion)
         writeFile(spacer)
-        bandera , colMenor = problema.__indiceColumnaMenor__()
         pivote = problema.__determinacionPivote__(colMenor)
         nuevaFila = problema.__nuevaFila__(pivote)
         tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)
@@ -214,18 +216,17 @@ class problema:
     def __makeOrdenFilas__(self):
         orden = []
         orden.append("U")
-        if (self.cant_v_holgura[0] > 0) \
-                and (self.cant_v_artificial[0] > 0) \
-                and (self.cant_v_exceso[0] > 0):
-            print("No implementado")
+        if (self.cant_v_exceso[0] > 0):
             #se hace  alista de los indices d elas variables identificadoras de los numeros
-            listaFilas = []
-            base = int(self.cant_v_decision)
+            for i in range(int(self.cant_restricciones)):
+                if self.cant_v_exceso[1].__contains__(i):
+                    orden.append(i + 2 + int(self.cant_v_decision))
+                else:
+                    orden.append(i + 1 + int(self.cant_v_decision))
         else:
             for i in range(len(self.restricciones)):
                 orden.append(i + 1 + int(self.cant_v_decision))
-            self.ordenFilas = orden
-
+        self.ordenFilas = orden
         #print("Orden de las filas: ", self.ordenFilas)
         writeFile("\nOrden de las filas: ")
         writeFile(self.ordenFilas)
