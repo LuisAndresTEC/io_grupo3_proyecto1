@@ -177,9 +177,16 @@ def agregarVariablesRestriccionesMin(funcionObjetivo, lista):
     for i in range(len(restriccionesRestas[0])):
         suma = 0.0000
         if restriccionesRestas[0][i] == "=":
-            funcionTemporal.append((float(restriccionesRestas[0][i+1])*-1)+(float(restriccionesRestas[1][i+1])*-1)+(float(listaArtificiales[i+1])*-1))    
+            for k in range(len(restriccionesRestas)):
+                suma += float(restriccionesRestas[k][i+1])*-1
+            suma += float(listaArtificiales[i+1])*-1
+            funcionTemporal.append(suma)
             break
-        funcionTemporal.append((float(restriccionesRestas[0][i])*-1)+(float(restriccionesRestas[1][i])*-1)+(float(listaArtificiales[i])*-1))
+        else:    
+            for j in range(len(restriccionesRestas)):
+                suma += float(restriccionesRestas[j][i])*-1
+            suma += float(listaArtificiales[i])*-1
+            funcionTemporal.append(suma)
 
     intToFloat(funcionTemporal)
     print(funcionTemporal)
@@ -285,9 +292,6 @@ def metodoSimplex(problema):
         Hay que hacer algo que en la ultima itercion diga solucion optima, en laugar de solucion inicial
         """
         iteracion += 1
-
-
-
 
 class problema:
     def __init__(self, lista):
@@ -520,6 +524,34 @@ class problema:
         self.__actualizarOrdenFilas__(pivote)
         return tablaNueva
 
+        #Esta función coordina el calculo la iteracion del metodo simplex
+    def __simplexMinCalculo__(self, pivote, nuevaFila):
+        tablaActual = self.tablaActual
+        tablaNueva = self.tablaSiguiente
+        tablaActualText = "\n--------------------------------Tabla Actual---------------------------------"
+        writeFile(tablaActualText)
+        self.__printTabla__(1)
+        writeFile("\nPivote: " + str(pivote))
+        tablaCerosText = "\n---------------------------Tabla nueva - ceros ------------------------------"
+        writeFile(tablaCerosText)
+        self.__printTabla__(2)
+        for i in range(int(self.cant_restricciones) + 1):#cambiarlo por cantidad de variables
+            if i != pivote[1][0]:
+                nuevaFila = []
+                for j in range(len(self.funcionObjetivo)-1):
+                    casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][1]])*-1 * float(tablaNueva[pivote[1][0]][j]))
+                    if casilla == float(-0).__format__('0.4f'):
+                        casilla = float(0).__format__('0.4f')
+                    nuevaFila.append(float(casilla).__format__('0.4f'))
+                tablaNueva[i] = nuevaFila
+        tablaNuevaText = "\n-------------------------Tabla nueva - calculada ----------------------------"
+        writeFile(tablaNuevaText)
+        #print(tablaNuevaText)
+        self.__printTabla__(2)
+        self.tablaActual = tablaNueva
+        self.tablaSiguiente = []
+        self.__actualizarOrdenFilas__(pivote)
+        return tablaNueva
     # Esta función va a verificar que simlos traen las restricciones y dira la cantidad de las diferentes variables que se necesitan
     def cantidadVariablesRestricciones(self):
         vHolgura = 0
