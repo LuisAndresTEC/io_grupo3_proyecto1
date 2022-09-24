@@ -48,20 +48,9 @@ def intToFloat(lista):
         if (lista[i] == '<=') | (lista[i] == '>=') | (lista[i] == '=') | (lista[i] == '<') | (lista[i] == '>'):
             lista[i] = lista[i]
         else:
-            lista[i] = float(lista[i]).__format__('0.4f')
+            lista[i] = float(lista[i])
     return lista
 
-# Esta funcion agrega las variables de holgura que necesita el problema
-"""cambiar parametro cantidadRestricciones por cantidad de variables"""
-"""def agregarVariablesHolguraFuncionObjetivo(funcionObjetivo, restricciones, opcion):
-    for j in range(len(restricciones)):
-        
-    for i in range(cantidadVariablesHolgura):
-        funcionObjetivo.append(float(0))
-    funcionObjetivo.append('=')
-    funcionObjetivo.append(float(0))
-    return funcionObjetivo
-"""
 
 #ESta función se encarga de vonvertir las desigualdades en igualdades y agrega variables de holgura
 def agregarVariablesHolguraRestricciones(lista, cantidadVariablesHolgura):
@@ -99,48 +88,47 @@ def agregarVariablesRestriccionesMin(funcionObjetivo, lista):
                 break
             else:
                 listaTemporal.append(lista[j][i])
-                listaArtificiales.append(float(0).__format__('0.4f'))
+                listaArtificiales.append(float(0))
         listaFinal.append(listaTemporal)
     variablesBasicas = listaFinal
     
 
     #Este ciclo va a agregar las variables de holgura, exceso y artificial a las restricciones
     for j in range(len(lista)):
-        listaTemporal = []
         listaTemporal = listaFinal[j]
         for i in range(len(lista[j])):
             if lista[j][i] == '<=':
                 #Agrega variable de holgura
-                listaTemporal.append(float(1).__format__('0.4f'))
+                listaTemporal.append(float(1))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
                 listaFinal[j]=listaTemporal
-                listaArtificiales.append(float(0).__format__('0.4f'))
+                listaArtificiales.append(float(0))
             elif lista[j][i] == '>=':
                 #Agrega variable de exceso
-                listaTemporal.append(float(-1).__format__('0.4f'))
+                listaTemporal.append(float(-1))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
-                listaArtificiales.append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
+                listaArtificiales.append(float(0))
                 #Agrega variable artificial
-                listaTemporal.append(float(1).__format__('0.4f'))
+                listaTemporal.append(float(1))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
                 listaFinal[j]=listaTemporal
                 indiceRestas.append(j)
-                listaArtificiales.append(float(1).__format__('0.4f'))
+                listaArtificiales.append(float(1))
             elif lista[j][i] == '=':
                 #Agrega variable artificial
-                listaTemporal.append(float(1).__format__('0.4f'))
+                listaTemporal.append(float(1))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
                 listaFinal[j]=listaTemporal
                 indiceRestas.append(j)
-                listaArtificiales.append(float(1).__format__('0.4f'))
+                listaArtificiales.append(float(1))
     
     #Este ciclo agrega los iguales y los resultados de cada restricción
     for j in range(len(lista)):
@@ -155,12 +143,12 @@ def agregarVariablesRestriccionesMin(funcionObjetivo, lista):
 
 
     listaArtificiales.append('=')
-    listaArtificiales.append(float(0).__format__('0.4f'))
+    listaArtificiales.append(float(0))
 
     restriccionesRestas = []
     for j in range(len(indiceRestas)):
         restriccionesRestas.append(listaFinal[indiceRestas[j]])
-    
+
     listaTemporal = []
     for i in range(len(listaArtificiales)):
         if listaArtificiales[i] == "=":
@@ -171,8 +159,6 @@ def agregarVariablesRestriccionesMin(funcionObjetivo, lista):
 
     intToFloat(listaTemporal)
     listaArtificiales = listaTemporal
-    print(listaArtificiales)
-    print(restriccionesRestas)
     funcionTemporal = []
     for i in range(len(restriccionesRestas[0])):
         suma = 0.0000
@@ -189,15 +175,19 @@ def agregarVariablesRestriccionesMin(funcionObjetivo, lista):
             funcionTemporal.append(suma)
 
     intToFloat(funcionTemporal)
-    print(funcionTemporal)
     funcionObjetivo = funcionTemporal
-    print(listaFinal)
-    return listaFinal, funcionObjetivo
+
+    print(listaArtificiales)
+    return listaFinal, funcionObjetivo, listaArtificiales
 
 
 # esta función permite agregar las varibles de todos los tipos a las restricciones
 def agregarVariablesRestriccionesMax(funcionObjetivo, lista):
     listaFinal = []
+    listaTemporal = []
+    for i in range(len(lista)):
+        listaTemporal.append(intToFloat(lista[i]))
+    lista = listaTemporal
     #Este ciclo va a agregar todas las variables antes de la igualdad en una lista de restricciones
     for j in range(len(lista)):
         listaTemporal = []
@@ -211,43 +201,41 @@ def agregarVariablesRestriccionesMax(funcionObjetivo, lista):
 
     #Este ciclo va a agregar las variables de holgura, exceso y artificial a las restricciones
     for j in range(len(lista)):
-        listaTemporal = []
         listaTemporal = listaFinal[j]
         for i in range(len(lista[j])):
             if lista[j][i] == '<=':
                 #Agrega variable de holgura
-                listaTemporal.append(float(1).__format__('0.4f'))
-                funcionObjetivo.append(float(0).__format__('0.4f'))
+                listaTemporal.append(float(1))
+                funcionObjetivo.append(float(0))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
                 listaFinal[j]=listaTemporal
             elif lista[j][i] == '>=':
                 #Agrega variable de holgura
-                listaTemporal.append(float(-1).__format__('0.4f'))
-                funcionObjetivo.append(float(0).__format__('0.4f'))
+                listaTemporal.append(float(-1))
+                funcionObjetivo.append(float(0))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
-                listaTemporal.append(float(1).__format__('0.4f'))
-                funcionObjetivo.append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
+                listaTemporal.append(float(1))
+                funcionObjetivo.append(float(0))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
                 listaFinal[j]=listaTemporal
             elif lista[j][i] == '=':
                 #Agrega variable de holgura
-                listaTemporal.append(float(1).__format__('0.4f'))
-                funcionObjetivo.append(float(0).__format__('0.4f'))
+                listaTemporal.append(float(1))
+                funcionObjetivo.append(float(0))
                 for k in range(len(listaFinal)):
                     if k != j:
-                        listaFinal[k].append(float(0).__format__('0.4f'))
+                        listaFinal[k].append(float(0))
                 listaFinal[j]=listaTemporal
    
    
     #Este ciclo agrega los iguales y los resultados de cada restricción
     for j in range(len(lista)):
-        listaTemporal = []
         listaTemporal = listaFinal[j]
         for i in range(len(lista[j])):
             if lista[j][i] == '>=' or lista[j][i] == '=' or lista[j][i] == '<=':
@@ -256,14 +244,14 @@ def agregarVariablesRestriccionesMax(funcionObjetivo, lista):
                 listaTemporal.append(lista[j][i+1])
                 listaFinal[j]=listaTemporal
     funcionObjetivo.append('=')
-    funcionObjetivo.append(float(0).__format__('0.4f'))
+    funcionObjetivo.append(float(0))
     print(listaFinal)
     return listaFinal, funcionObjetivo
 
 # Esta función se encarga de hacer el calculo respectivo al nuevo valor en el proceso de calculo de simplex
 def calculaCasilla(casilla,pivote):
     casillaNegada = float(float(casilla) * -1.0).__format__()
-    resultado = (float(casilla).__format__('0.4f') + casillaNegada) * float(pivote).__format__('0.4f')
+    resultado = (float(casilla) + casillaNegada) * float(pivote)
     return resultado
 
 # Esta función se encarga de dirigir el proceso de calculo de simplex
@@ -271,7 +259,6 @@ def metodoSimplex(problema):
     bandera = True
     iteracion = 0
     spacer = "\n-----------------------------------------------------------------------------\n"
-
     while bandera:
         bandera , colMenor = problema.__indiceColumnaMenor__()
         if bandera == False:
@@ -284,6 +271,8 @@ def metodoSimplex(problema):
         writeFile(numero_iteracion)
         writeFile(spacer)
         pivote = problema.__determinacionPivote__(colMenor)
+        if len(pivote) == 0:
+            break
         nuevaFila = problema.__nuevaFila__(pivote)
         tablaNueva = problema.__tablaNueva__(nuevaFila, pivote)
         tablaNueva = problema.__simplexMaxCalculo__(pivote, nuevaFila)
@@ -292,6 +281,64 @@ def metodoSimplex(problema):
         Hay que hacer algo que en la ultima itercion diga solucion optima, en laugar de solucion inicial
         """
         iteracion += 1
+def eliminarVariablesArtificiales(lista, problema):
+    for i in range(len(problema.listaArtificiales)):
+        if problema.listaArtificiales[i] == "=":
+            problema.listaArtificiales.pop(i)
+            break
+    print("\nLista antes de cambios\n",lista)
+    print("\nLista Artificiales antes de cambios\n",problema.listaArtificiales)
+    contador = 0
+    while contador < len(problema.listaArtificiales):
+        if problema.listaArtificiales[contador] == -1.0:
+            for j in range(len(lista)):
+                lista[j].pop(contador)
+            problema.listaArtificiales.pop(contador)
+        else:
+            contador += 1
+    print("\nLista despues de cambios\n",lista)
+    print("\nLista Artificiales despues de cambios\n",problema.listaArtificiales)
+    return lista
+
+def metodoDosFases(problema):
+    bandera = True
+    iteracion = 0
+    spacer = "\n-----------------------------------------------------------------------------\n"
+    while bandera:
+        bandera , colMenor = problema.__indiceColumnaMenor__()
+        if bandera == False:
+            listaTemporal = []
+            for i in range(1, len(problema.tablaActual)):
+                listaTemporal.append(problema.tablaActual[i])
+            nuevasRestricciones = eliminarVariablesArtificiales(listaTemporal, problema)
+            listaFinal = []
+            for i in range(len(nuevasRestricciones)):
+                listaTemporal = nuevasRestricciones[i]
+                listaTemporal.insert(-1, "=")
+                listaFinal.append(listaTemporal)
+            nuevasRestricciones = listaFinal
+            problema.restricciones = nuevasRestricciones
+            print(problema.restricciones)
+            break
+        numero_iteracion = "-----------------------------Iteracion numero: " + str(iteracion) + "-----------------------------"
+        writeFile(spacer)
+        writeFile(numero_iteracion)
+        writeFile(spacer)
+        pivote = problema.__determinacionPivote__(colMenor)
+        if len(pivote) == 0:
+            #Termino fase 1
+            #elimino variables artificiales
+
+            break
+        nuevaFila = problema.__nuevaFilaDosFases__(pivote)
+        tablaNueva = problema.__tablaNuevaDosFases__(nuevaFila, pivote)
+        tablaNueva = problema.__simplexMinCalculo__(pivote, nuevaFila)
+        solucionInicial = problema.__solucionSimplexMax__()
+        """
+        Hay que hacer algo que en la ultima itercion diga solucion optima, en laugar de solucion inicial
+        """
+        iteracion += 1
+
 
 class problema:
     def __init__(self, lista):
@@ -307,9 +354,9 @@ class problema:
         self.tablaActual = []
         self.tablaSiguiente = []
         self.ordenFilas = []
+        self.listaArtificiales = []
 
-    #pasa a negativo los valores de la funcion objetivo
-    """uptate Dos Faces"""
+
     def __despejarFuncionObjetivoMax__(self, lista):
         for i in range(len(lista)):
             if lista[i] == '=':
@@ -318,8 +365,6 @@ class problema:
                 lista[i] = float(lista[i]) * -1
         return lista
 
-    # Esta función se encarga de inicializar la lista de orden de las filas = ["U",3,4,5]
-    """uptate Dos Faces"""
     def __makeOrdenFilas__(self):
         orden = []
         orden.append("U")
@@ -339,22 +384,23 @@ class problema:
         writeFile(self.ordenFilas)
         return self
 
-    #Esta función se encarga de actualizar la lista de orden de las filas
-    """uptate Dos Faces"""
     def __actualizarOrdenFilas__(self, pivote):
         self.ordenFilas[pivote[1][0]] = int(pivote[1][1])+1
         #print("Orden de las filas: ", self.ordenFilas)
         writeFile("\nOrden de las filas: " + str(self.ordenFilas))
 
-    # Esta función se encarga de pasar los numeros de las restricciones a la funcion que los convierte en float
-    """uptate Dos Faces"""
+
     def __setRestriccionesFloats__(self):
         for i in range(len(self.restricciones)):
             self.restricciones[i] = intToFloat(self.restricciones[i])
 
-    #Esta función trabaja como coordinadora en el proceso de agregado de variables de holgura, enn restricciones y en la funcion objetivo
-    """ver self.objetivo y intToFloat"""
+
     def __agregarVariablesHolguraSimplexMax__(self):
+        self.funcionObjetivo = intToFloat(self.funcionObjetivo)
+        listaTemporal = []
+        for i in range(len(self.restricciones)):
+            listaTemporal.append(intToFloat(self.restricciones[i]))
+        self.restricciones = listaTemporal
         tablaCompleta = agregarVariablesRestriccionesMax(self.funcionObjetivo, self.restricciones)
         self.restricciones = tablaCompleta[0]
         self.funcionObjetivo = tablaCompleta[1]
@@ -369,6 +415,7 @@ class problema:
         tablaCompleta = agregarVariablesRestriccionesMin(self.funcionObjetivo, self.restricciones)
         self.restricciones = tablaCompleta[0]
         self.funcionObjetivo = tablaCompleta[1]
+        self.listaArtificiales = tablaCompleta[2]
         self.funcionObjetivo = intToFloat(self.funcionObjetivo)
         print(self.funcionObjetivo)
         self.__setRestriccionesFloats__()
@@ -380,13 +427,13 @@ class problema:
         tabla1 = []
         for j in range(len(self.funcionObjetivo)):
             if self.funcionObjetivo[j] != '=':
-                tabla1.append(float(self.funcionObjetivo[j]).__format__('0.4f'))
+                tabla1.append(float(self.funcionObjetivo[j]))
         tabla.append(tabla1)
         for i in range(len(self.restricciones)):
             tabla2 = []
             for j in range(len(self.restricciones[i])):
                 if self.restricciones[i][j] != '=':
-                    tabla2.append(float(self.restricciones[i][j]).__format__('0.4f'))
+                    tabla2.append(float(self.restricciones[i][j]))
             tabla.append(tabla2)
         self.tablaActual = tabla
         return tabla
@@ -419,18 +466,21 @@ class problema:
     def __solucionSimplexMax__(self):
 
         solucion = []
-        solucion.append(float(self.tablaActual[0][-1]).__format__('0.4f'))
+        solucion.append(float(self.tablaActual[0][-1]))
         auxiliar = []
         resultados = []
         for i in range(1, len(self.tablaActual)):
             resultados.append(self.tablaActual[i][-1])
         for i in range(len(self.funcionObjetivo)-2):
-            auxiliar.append(float(0).__format__('0.4f'))
+            auxiliar.append(float(0))
         for j in range(len(auxiliar)+1):
             for k in self.ordenFilas:
                 if j == k:
                     auxiliar[j-1] = resultados[self.ordenFilas.index(k)-1]
         solucion.append(auxiliar)
+        solucion[0] = float((solucion[0]).__format__('0.4f'))
+        for j in range(len(solucion[1])):
+            solucion[1][j] = float((solucion[1][j]).__format__('0.4f'))
         writeFile("\nSolucion actual: " + str(solucion))
         return solucion
 
@@ -446,8 +496,8 @@ class problema:
             return False , 0
         else:
             resultado = max(negativos)
-            #print("Minimo: " , float(self.tablaActual[0].index(resultado)).__format__('0.4f') , " Valor: " , float(resultado).__format__('0.4f'))
-            writeFile("Minimo: " + str(float(self.tablaActual[0].index(resultado)).__format__('0.4f')) + " Valor: " + str(float(resultado).__format__('0.4f')))
+            #print("Minimo: " , float(self.tablaActual[0].index(resultado)) , " Valor: " , float(resultado))
+            writeFile("Minimo: " + str(float(self.tablaActual[0].index(resultado))) + " Valor: " + str(float(resultado)))
             return True , int(self.tablaActual[0].index(resultado))
 
     #Esta función se encarga de deteriminar cual va a ser el pivote dado el indice de la columna pivote que se va a usar
@@ -456,13 +506,17 @@ class problema:
     def __determinacionPivote__(self, columna):
         tabla = self.tablaActual
         divisiones = []
-        for i in range(len(tabla) - 1):
-            if tabla[i + 1][columna] > float(0).__format__('0.4f'):
-                casilla = float(tabla[i + 1][-1])
-                pivote = float(tabla[i + 1][columna])
-                pair = [float(casilla/pivote).__format__('0.4f'), [i+1, columna]]
+        for i in range(1,len(tabla)):
+            if tabla[i][columna] > float(0):
+                casilla = tabla[i][-1]
+                pivote = tabla[i][columna]
+                division = float(casilla) / float(pivote)
+                division = float(division)
+                pair = [division, [i, columna]]
                 divisiones.append(pair)
 
+        if len(divisiones) == 0:
+            return divisiones
         pivote = divisiones[0]
         for i in range(len(divisiones)):
             if divisiones[i][0] < pivote[0]:
@@ -478,8 +532,21 @@ class problema:
         nuevaFila = []
         for i in range(len(tabla[fila])):
             nuevaFila.append(float(
-                float(tabla[int(fila)][i]) / float(tabla[int(fila)][columna])).__format__('0.4f'))
+                float(tabla[int(fila)][i]) / float(tabla[int(fila)][columna])))
         return nuevaFila
+
+    #Esta función se encarga de generar la nueva fila pivote a base del pivote dado
+    """uptate Dos Faces"""
+    def __nuevaFilaDosFases__(self, pivote):
+        tabla = self.tablaActual
+        fila = pivote[1][0]
+        columna = pivote[1][1]
+        nuevaFila = []
+        for i in range(len(tabla[fila])):
+            nuevaFila.append(float(
+                float(tabla[int(fila)][i]) / float(tabla[int(fila)][columna])))
+        return nuevaFila
+
 
     #Esta función se encarga de generar la nueva tabla a base de la fila pivote y los campos restantes lo rellena con ceros
     def __tablaNueva__(self, nuevaFila, pivote):
@@ -488,7 +555,21 @@ class problema:
             if i != pivote[1][0]:
                 fila = []
                 for j in range(len(self.funcionObjetivo)-1):
-                    fila.append(float(0).__format__('0.4f'))
+                    fila.append(float(0))
+                tabla.append(fila)
+            else:
+                tabla.append(nuevaFila)
+        self.tablaSiguiente = tabla
+        return tabla
+
+    #Esta función se encarga de generar la nueva tabla a base de la fila pivote y los campos restantes lo rellena con ceros
+    def __tablaNuevaDosFases__(self, nuevaFila, pivote):
+        tabla = []
+        for i in range(int(self.cant_restricciones) + 1):
+            if i != pivote[1][0]:
+                fila = []
+                for j in range(len(self.funcionObjetivo)):
+                    fila.append(float(0))
                 tabla.append(fila)
             else:
                 tabla.append(nuevaFila)
@@ -496,6 +577,34 @@ class problema:
         return tabla
 
     #Esta función coordina el calculo la iteracion del metodo simplex
+    def __simplexMinCalculo__(self, pivote, nuevaFila):
+        tablaActual = self.tablaActual
+        tablaNueva = self.tablaSiguiente
+        tablaActualText = "\n--------------------------------Tabla Actual---------------------------------"
+        writeFile(tablaActualText)
+        self.__printTabla__(1)
+        writeFile("\nPivote: " + str(pivote))
+        tablaCerosText = "\n---------------------------Tabla nueva - ceros ------------------------------"
+        writeFile(tablaCerosText)
+        self.__printTabla__(2)
+        for i in range(int(self.cant_restricciones) + 1):#cambiarlo por cantidad de variables
+            if i != pivote[1][0]:
+                nuevaFila = []
+                for j in range(len(self.funcionObjetivo)):
+                    casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][1]])*-1 * float(tablaNueva[pivote[1][0]][j]))
+                    if casilla == float(-0):
+                        casilla = float(0)
+                    nuevaFila.append(float(casilla))
+                tablaNueva[i] = nuevaFila
+        tablaNuevaText = "\n-------------------------Tabla nueva - calculada ----------------------------"
+        writeFile(tablaNuevaText)
+        #print(tablaNuevaText)
+        self.__printTabla__(2)
+        self.tablaActual = tablaNueva
+        self.tablaSiguiente = []
+        self.__actualizarOrdenFilas__(pivote)
+        return tablaNueva
+
     def __simplexMaxCalculo__(self, pivote, nuevaFila):
         tablaActual = self.tablaActual
         tablaNueva = self.tablaSiguiente
@@ -511,9 +620,9 @@ class problema:
                 nuevaFila = []
                 for j in range(len(self.funcionObjetivo)-1):
                     casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][1]])*-1 * float(tablaNueva[pivote[1][0]][j]))
-                    if casilla == float(-0).__format__('0.4f'):
-                        casilla = float(0).__format__('0.4f')
-                    nuevaFila.append(float(casilla).__format__('0.4f'))
+                    if casilla == float(-0):
+                        casilla = float(0)
+                    nuevaFila.append(float(casilla))
                 tablaNueva[i] = nuevaFila
         tablaNuevaText = "\n-------------------------Tabla nueva - calculada ----------------------------"
         writeFile(tablaNuevaText)
@@ -524,34 +633,7 @@ class problema:
         self.__actualizarOrdenFilas__(pivote)
         return tablaNueva
 
-        #Esta función coordina el calculo la iteracion del metodo simplex
-    def __simplexMinCalculo__(self, pivote, nuevaFila):
-        tablaActual = self.tablaActual
-        tablaNueva = self.tablaSiguiente
-        tablaActualText = "\n--------------------------------Tabla Actual---------------------------------"
-        writeFile(tablaActualText)
-        self.__printTabla__(1)
-        writeFile("\nPivote: " + str(pivote))
-        tablaCerosText = "\n---------------------------Tabla nueva - ceros ------------------------------"
-        writeFile(tablaCerosText)
-        self.__printTabla__(2)
-        for i in range(int(self.cant_restricciones) + 1):#cambiarlo por cantidad de variables
-            if i != pivote[1][0]:
-                nuevaFila = []
-                for j in range(len(self.funcionObjetivo)-1):
-                    casilla = float(tablaActual[i][j]) + (float(tablaActual[i][pivote[1][1]])*-1 * float(tablaNueva[pivote[1][0]][j]))
-                    if casilla == float(-0).__format__('0.4f'):
-                        casilla = float(0).__format__('0.4f')
-                    nuevaFila.append(float(casilla).__format__('0.4f'))
-                tablaNueva[i] = nuevaFila
-        tablaNuevaText = "\n-------------------------Tabla nueva - calculada ----------------------------"
-        writeFile(tablaNuevaText)
-        #print(tablaNuevaText)
-        self.__printTabla__(2)
-        self.tablaActual = tablaNueva
-        self.tablaSiguiente = []
-        self.__actualizarOrdenFilas__(pivote)
-        return tablaNueva
+
     # Esta función va a verificar que simlos traen las restricciones y dira la cantidad de las diferentes variables que se necesitan
     def cantidadVariablesRestricciones(self):
         vHolgura = 0
@@ -595,9 +677,10 @@ class problema:
 
 
 #Esta función ejecuta el algoritmo del metodo simplex
-def ejecutarSimplex(nombre_archivo):
+def ejecutarSimplex(nombre_archivo, opcion):
     removeFile()
     datos = separarDatos(nombre_archivo)
+    print(datos)
     problema_simplex = problema(datos)
     problema_simplex.cantidadVariablesRestricciones()
     if problema_simplex.metodo == '1':  # Es simplex
@@ -615,13 +698,13 @@ def ejecutarSimplex(nombre_archivo):
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
-            metodoSimplex(problema_simplex)
+            metodoDosFases(problema_simplex)
         elif (problema_simplex.optimizacion == "min"):
             problema_simplex.__agregarVariablesHolguraSimplexMin__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
-            metodoSimplex(problema_simplex)
+            metodoDosFases(problema_simplex)
 
     else:
         print("No existe el metodo ingresado")
@@ -664,7 +747,7 @@ def main():
         print("El sistema se ejecutara con el archivo de texto: " + sys.argv[1])
         print("El resultado se guardara en el archivo: resultado.txt")
         nombre_archivo = sys.argv[1]
-        ejecutarSimplex(nombre_archivo)
+        ejecutarSimplex(nombre_archivo, 1)
     exit(0)
 
 
