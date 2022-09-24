@@ -1,7 +1,3 @@
-from asyncore import write
-from mailbox import NoSuchMailboxError
-from unittest import skip
-import numpy as np
 import sys
 import os
 
@@ -281,7 +277,9 @@ def metodoSimplex(problema):
         Hay que hacer algo que en la ultima itercion diga solucion optima, en laugar de solucion inicial
         """
         iteracion += 1
-def eliminarVariablesArtificiales(lista, problema):
+
+
+def eliminarVariablesArtificialesRestricciones(lista, problema):
     for i in range(len(problema.listaArtificiales)):
         if problema.listaArtificiales[i] == "=":
             problema.listaArtificiales.pop(i)
@@ -289,7 +287,7 @@ def eliminarVariablesArtificiales(lista, problema):
     print("\nLista antes de cambios\n",lista)
     print("\nLista Artificiales antes de cambios\n",problema.listaArtificiales)
     contador = 0
-    while contador < len(problema.listaArtificiales):
+    while contador < len(problema.listaArtificiales)-1:
         if problema.listaArtificiales[contador] == -1.0:
             for j in range(len(lista)):
                 lista[j].pop(contador)
@@ -298,6 +296,7 @@ def eliminarVariablesArtificiales(lista, problema):
             contador += 1
     print("\nLista despues de cambios\n",lista)
     print("\nLista Artificiales despues de cambios\n",problema.listaArtificiales)
+    problema.tablaActual = lista
     return lista
 
 def metodoDosFases(problema):
@@ -308,16 +307,17 @@ def metodoDosFases(problema):
         bandera , colMenor = problema.__indiceColumnaMenor__()
         if bandera == False:
             listaTemporal = []
-            for i in range(1, len(problema.tablaActual)):
-                listaTemporal.append(problema.tablaActual[i])
-            nuevasRestricciones = eliminarVariablesArtificiales(listaTemporal, problema)
-            listaFinal = []
-            for i in range(len(nuevasRestricciones)):
-                listaTemporal = nuevasRestricciones[i]
-                listaTemporal.insert(-1, "=")
-                listaFinal.append(listaTemporal)
-            nuevasRestricciones = listaFinal
-            problema.restricciones = nuevasRestricciones
+            nuevaTablaSinRestriccinesArtificiales = eliminarVariablesArtificialesRestricciones(problema.tablaActual, problema)
+#            listaFinal = []
+#            for i in range(len(nuevaTablaSinRestriccinesArtificiales)):
+#                listaTemporal = nuevaTablaSinRestriccinesArtificiales[i]
+#                listaTemporal.insert(-1, "=")
+#                listaFinal.append(listaTemporal)
+ #           nuevaTablaSinRestriccinesArtificiales = listaFinal
+            problema.restricciones = nuevaTablaSinRestriccinesArtificiales[1:]
+            problema.funcionObjetivo = problema.tablaActual[0]
+            problema.funcionObjetivo = remplazarFuncionObjetivoFaseDos(problema)
+            problema.tablaActual = operarFuncionObjetivoFaseDos(problema)
             print(problema.restricciones)
             break
         numero_iteracion = "-----------------------------Iteracion numero: " + str(iteracion) + "-----------------------------"
@@ -340,12 +340,64 @@ def metodoDosFases(problema):
         iteracion += 1
 
 
+
+"""----------------------------------------------------------------------------------------------------------------
+---------------------------------------------Experimentos----------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------"""
+
+def remplazarFuncionObjetivoFaseDos(problema):
+    listaTemporal = []
+    listaAuxiliar = []
+
+    for i in range(len(problema.funcionObjetivoPrimaria)):
+        listaTemporal.append(problema.funcionObjetivoPrimaria[i]*-1)
+    problema.funcionObjetivoPrimaria = listaTemporal
+    for j in range(len(problema.funcionObjetivoPrimaria)):
+        problema.funcionObjetivo[j] = listaTemporal[j]
+    for k in range(len(problema.funcionObjetivo)):
+        if problema.funcionObjetivo[k] != "=":
+            listaAuxiliar.append(problema.funcionObjetivo[k])
+    problema.tablaActual[0] = listaAuxiliar
+
+
+
+def operarFuncionObjetivoFaseDos(problema):
+    # La idea es hace un ono de la funcion objetivo
+    contador = 0
+    while contador < len(problema.funcionObjetivoPrimaria):
+        menor = 0
+        for i in range(len(problema.funcionObjetivoPrimaria)):
+            if problema.funcionObjetivoPrimaria[menor] > problema.funcionObjetivoPrimaria[i]:
+                menor = i
+        problema.funcionObjetivoPrimaria[menor] = (problema.funcionObjetivoPrimaria[menor]*500)
+        contador += 1
+        listaTemporal = []
+        for j in range(len(problema.tablaActual)):
+            if problema.tablaActual[j][menor] == 1:
+                for w in range(len(problema.tablaActual[j])):
+                    if problema.tablaActual[j][w] != "=":
+                        listaTemporal.append(problema.tablaActual[j][w])
+                filaPivote = listaTemporal
+        listaCalulada = []
+        for k in range(len(problema.tablaActual[0])):
+            listaCalulada.append(float(problema.tablaActual[0][k]) + float(problema.tablaActual[0][k]*-1) * float(filaPivote[k]))
+        problema.tablaActual[0] = listaCalulada
+
+        print("\n\n\n\n\t\t\t La fila operada es: ", problema.tablaActual[0])
+    return problema.tablaActual
+
+
+
+
+
+
 class problema:
     def __init__(self, lista):
         self.metodo = lista[0][0]
         self.optimizacion = lista[0][1]
         self.cant_v_decision = lista[0][2]
         self.cant_restricciones = lista[0][3]
+        self.funcionObjetivoPrimaria = lista[1]
         self.cant_v_holgura = []
         self.cant_v_artificial = []
         self.cant_v_exceso = []
