@@ -259,6 +259,16 @@ def metodoSimplex(problema):
         bandera , colMenor = problema.__indiceColumnaMenor__()
         if bandera == False:
             break
+        elif bandera == True and colMenor == 0:
+            numero_iteracion = "-----------------------------Iteracion numero: " + str(
+                iteracion) + "-----------------------------"
+            # print(spacer)
+            # print(numero_iteracion)
+            # print(spacer)
+            writeFile(spacer)
+            writeFile(numero_iteracion)
+            writeFile(spacer)
+
         numero_iteracion = "-----------------------------Iteracion numero: " + str(iteracion) + "-----------------------------"
         #print(spacer)
         #print(numero_iteracion)
@@ -299,37 +309,48 @@ def eliminarVariablesArtificialesRestricciones(lista, problema):
     problema.tablaActual = lista
     return lista
 
-def metodoDosFases(problema):
+def metodoDosFases(problema, contador):
     bandera = True
     iteracion = 0
     spacer = "\n-----------------------------------------------------------------------------\n"
     while bandera:
         bandera , colMenor = problema.__indiceColumnaMenor__()
         if bandera == False:
+            if contador == 1:
+                break
             listaTemporal = []
             nuevaTablaSinRestriccinesArtificiales = eliminarVariablesArtificialesRestricciones(problema.tablaActual, problema)
-#            listaFinal = []
-#            for i in range(len(nuevaTablaSinRestriccinesArtificiales)):
-#                listaTemporal = nuevaTablaSinRestriccinesArtificiales[i]
-#                listaTemporal.insert(-1, "=")
-#                listaFinal.append(listaTemporal)
- #           nuevaTablaSinRestriccinesArtificiales = listaFinal
             problema.restricciones = nuevaTablaSinRestriccinesArtificiales[1:]
-            problema.funcionObjetivo = problema.tablaActual[0]
+            problema.funcionObjetivo = nuevaTablaSinRestriccinesArtificiales[0]
             problema.funcionObjetivo = remplazarFuncionObjetivoFaseDos(problema)
-            problema.tablaActual = operarFuncionObjetivoFaseDos(problema)
+            problema.tablaActual[0] = operarFuncionObjetivoFaseDos(problema)
+            problema.funcionObjetivo = problema.tablaActual[0]
+            listaFinal = []
+            """for i in range(len(nuevaTablaSinRestriccinesArtificiales)):
+                listaTemporal = nuevaTablaSinRestriccinesArtificiales[i]
+                listaTemporal.insert(-1, "=")
+                listaFinal.append(listaTemporal)
+            nuevaTablaSinRestriccinesArtificiales = listaFinal
+            problema.funcionObjetivo = nuevaTablaSinRestriccinesArtificiales[0]
+            problema.restricciones = nuevaTablaSinRestriccinesArtificiales[1:]"""
+            print(problema.funcionObjetivo)
             print(problema.restricciones)
+            negativos = []
+            for i in range(len(problema.tablaActual[0]) - 1):
+                if int(problema.tablaActual[0][i]) < 0:
+                    negativos.append(problema.tablaActual[0][i])
+            if len(negativos) == 0 and problema.tablaActual[0][-1] < 0:
+                writeFile("\n\n\n Este sería el resultado final de la ejecución del método 2 fases")
+                problema.__printTabla__(1)
+                problema.__solucionSimplexMax__()
+            else:
+                metodoDosFases(problema, 1)
             break
         numero_iteracion = "-----------------------------Iteracion numero: " + str(iteracion) + "-----------------------------"
         writeFile(spacer)
         writeFile(numero_iteracion)
         writeFile(spacer)
         pivote = problema.__determinacionPivote__(colMenor)
-        if len(pivote) == 0:
-            #Termino fase 1
-            #elimino variables artificiales
-
-            break
         nuevaFila = problema.__nuevaFilaDosFases__(pivote)
         tablaNueva = problema.__tablaNuevaDosFases__(nuevaFila, pivote)
         tablaNueva = problema.__simplexMinCalculo__(pivote, nuevaFila)
@@ -357,34 +378,36 @@ def remplazarFuncionObjetivoFaseDos(problema):
     for k in range(len(problema.funcionObjetivo)):
         if problema.funcionObjetivo[k] != "=":
             listaAuxiliar.append(problema.funcionObjetivo[k])
-    problema.tablaActual[0] = listaAuxiliar
+    return listaAuxiliar
 
 
 
 def operarFuncionObjetivoFaseDos(problema):
-    # La idea es hace un ono de la funcion objetivo
-    contador = 0
-    while contador < len(problema.funcionObjetivoPrimaria):
+
+
+    lista = problema.tablaActual[0]
+    for w in range(len(problema.funcionObjetivoPrimaria)):
         menor = 0
         for i in range(len(problema.funcionObjetivoPrimaria)):
             if problema.funcionObjetivoPrimaria[menor] > problema.funcionObjetivoPrimaria[i]:
                 menor = i
-        problema.funcionObjetivoPrimaria[menor] = (problema.funcionObjetivoPrimaria[menor]*500)
-        contador += 1
+        problema.funcionObjetivoPrimaria[menor] = (problema.funcionObjetivoPrimaria[menor] * 5000)
         listaTemporal = []
         for j in range(len(problema.tablaActual)):
             if problema.tablaActual[j][menor] == 1:
-                for w in range(len(problema.tablaActual[j])):
-                    if problema.tablaActual[j][w] != "=":
-                        listaTemporal.append(problema.tablaActual[j][w])
-                filaPivote = listaTemporal
-        listaCalulada = []
-        for k in range(len(problema.tablaActual[0])):
-            listaCalulada.append(float(problema.tablaActual[0][k]) + float(problema.tablaActual[0][k]*-1) * float(filaPivote[k]))
-        problema.tablaActual[0] = listaCalulada
+                filaPivote = problema.tablaActual[j]
+        listaCalculada = []
+        if len(lista) == 0:
+            lista = problema.tablaActual[0]
+        for k in range(len(lista)):
+            listaCalculada.append(float(lista[k]) + (float(lista[menor]*-1) * float(filaPivote[k])))
+        lista = listaCalculada
 
-        print("\n\n\n\n\t\t\t La fila operada es: ", problema.tablaActual[0])
-    return problema.tablaActual
+    negativos = []
+
+
+    return lista
+
 
 
 
@@ -543,9 +566,18 @@ class problema:
         for i in range(len(self.tablaActual[0])-1):
             if float(self.tablaActual[0][i]) < 0:
                 negativos.append(self.tablaActual[0][i])
-
+        """
+        listaTemporal = []
+        for i in range(len(self.tablaActual[0])):
+            for j in range(len(listaTemporal)):
+                if listaTemporal[j] == self.tablaActual[i]:
+                    print("La solucion posee rompimiento de empates")
+            listaTemporal.append(self.tablaActual[0][i])
+        """
         if len(negativos) < 1:
             return False , 0
+        elif float(self.tablaActual[0][-1]) < 0 and len(negativos) < 1 :
+            return True , 0
         else:
             resultado = max(negativos)
             #print("Minimo: " , float(self.tablaActual[0].index(resultado)) , " Valor: " , float(resultado))
@@ -567,6 +599,10 @@ class problema:
                 pair = [division, [i, columna]]
                 divisiones.append(pair)
 
+        for w in range(len(divisiones)):
+            for e in range(len(divisiones)):
+                if divisiones[w][0] == divisiones[e][0] and w != e:
+                    writeFile("En este caso se presenta de solución degenerada")
         if len(divisiones) == 0:
             return divisiones
         pivote = divisiones[0]
@@ -606,7 +642,7 @@ class problema:
         for i in range(int(self.cant_restricciones) + 1):
             if i != pivote[1][0]:
                 fila = []
-                for j in range(len(self.funcionObjetivo)-1):
+                for j in range(len(self.tablaActual[0])):
                     fila.append(float(0))
                 tabla.append(fila)
             else:
@@ -750,13 +786,13 @@ def ejecutarSimplex(nombre_archivo, opcion):
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
-            metodoDosFases(problema_simplex)
+            metodoDosFases(problema_simplex, 0)
         elif (problema_simplex.optimizacion == "min"):
             problema_simplex.__agregarVariablesHolguraSimplexMin__()
             problema_simplex.__makeOrdenFilas__()
             problema_simplex.__tabularProblema__()
             problema_simplex.__print__()
-            metodoDosFases(problema_simplex)
+            metodoDosFases(problema_simplex, 0)
 
     else:
         print("No existe el metodo ingresado")
